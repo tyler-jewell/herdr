@@ -30,7 +30,7 @@ Use the official skill when one exists. Cloudflare work uses the Cloudflare skil
 
 When you need a skill that is not already in this repo, fetch it with `npx skills`, then copy it into `skills/` by hand and commit it. `npx skills` is only how you fetch. The committed copy is the one agents use.
 
-When no skill exists, write one in `skills/` and commit it.
+When no skill exists, write one in `skills/` and commit it. Every skill this repo writes follows the format of `skills/turnkey-tk`. That skill is clean, modern, and very powerful.
 
 Each skill has one `CHECKLIST.md` beside its `SKILL.md`. That file is the live decision list for the skill. Update it in the same change when the skill's commands or docs change. Do not copy it into another file. `test.sh` checks that it is there. `CHECKLIST.md` is not part of an upstream package. `tk skills install` refuses a package it did not write, so set those files aside before an install and put them back after.
 

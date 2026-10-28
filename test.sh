@@ -326,6 +326,7 @@ printf 'ok skill\n'
 # Every tool or service has a skill committed under skills/. The rule lives in CONTRIBUTING.md.
 grep -q 'Every tool or service this repo uses has its skill in `skills/`' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not require a committed skill per tool"
 grep -q 'npx skills' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not name npx skills"
+grep -q 'follows the format of `skills/turnkey-tk`' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not require the turnkey skill format"
 printf 'ok skills-rule\n'
 
 # One live checklist beside each skill. The decision list, updated with the skill.
