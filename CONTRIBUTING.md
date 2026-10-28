@@ -32,13 +32,17 @@ When you need a skill that is not already in this repo, fetch it with `npx skill
 
 When no skill exists, write one in `skills/` and commit it.
 
+Each skill has one `CHECKLIST.md` beside its `SKILL.md`. That file is the live decision list for the skill. Update it in the same change when the skill's commands or docs change. Do not copy it into another file. `test.sh` checks that it is there. `CHECKLIST.md` is not part of an upstream package. `tk skills install` refuses a package it did not write, so set those files aside before an install and put them back after.
+
+`skills/herdr/bootstrap.md` is the questioning procedure for those checklists. Change the rounds, the question count, or the implementation limit there. It has no `CHECKLIST.md` of its own. Do not copy the procedure into another file.
+
 ## Required for every change
 
 - Behavior changes land in `apply` or `config/config.toml`, not in a side path.
 - When the applied config's meaning changes, bump `SETUP_VERSION` in `apply` and the `herdr-setup:` line in `config/config.toml` together. Old machines stay identifiable until they apply.
 - Keys must be real Herdr config keys from <https://herdr.dev/docs/config-reference/>. Do not invent keys. Herdr silently falls back on invalid values and the machine looks configured when it is not.
 - `skills/container` is the official Apple container skill from `apple/container`, including its references. Do not replace it with a rewrite. `test.sh` checks that it is there. The independent reviewer reads it when a change touches the container runtime. Container commands stay the ones that skill lists.
-- `skills/turnkey-tk` is the tk 0.7.0 package from `tk skills install --into skills` (<https://github.com/tkhq/tk>). Leave it as the installer wrote it, including `turnkey-tk.json`. Do not add another way to handle secrets or keys. `test.sh` checks this.
+- `skills/turnkey-tk` is the tk 0.7.0 package from `tk skills install --into skills` (<https://github.com/tkhq/tk>). Leave the files the installer wrote, including `turnkey-tk.json`. Do not add another way to handle secrets or keys. `test.sh` checks this.
 - `./test.sh` is the only test. Do not add a second test file. The argument is the arch, and the default is `macos`. `macos` is this Mac: the script builds `sandbox/Containerfile` and runs the checks as uid 1000 in a read-only Apple container with no host mounts and no capabilities. The live half installs Herdr there and checks config, agents, and core commands. An arch that does not exist yet fails. It does not guess another runtime. Add a check in `test.sh` for new behavior (a new OS path, a new refusal, a new exit code, a new arch). Do not point the checks at the host home. stdout is four sections, `test`, `memory`, `system`, `result`, including when the test fails. Container pull and boot output is not part of that log.
 - `./test.sh` rewrites `badges/commit.svg`, `badges/tests.svg`, and `badges/time.svg` from that run: pass or fail for the tree under test (latest commit, local changes included), the number of cases that ran, and the wall-clock seconds including container startup. Do not edit those numbers by hand.
 - `./test.sh` passes before the change is done.

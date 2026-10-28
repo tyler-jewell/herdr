@@ -328,9 +328,29 @@ grep -q 'Every tool or service this repo uses has its skill in `skills/`' "$ROOT
 grep -q 'npx skills' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not name npx skills"
 printf 'ok skills-rule\n'
 
+# One live checklist beside each skill. The decision list, updated with the skill.
+find "$ROOT/skills" -name SKILL.md >"$TMP/skills"
+while IFS= read -r skill; do
+  dir=$(dirname "$skill")
+  [ -f "$dir/CHECKLIST.md" ] || fail "checklist: missing $dir/CHECKLIST.md"
+  grep -q '^## Questions' "$dir/CHECKLIST.md" || fail "checklist: $dir/CHECKLIST.md has no questions"
+done <"$TMP/skills"
+grep -q 'Each skill has one `CHECKLIST.md`' "$ROOT/CONTRIBUTING.md" || fail "checklist: rule missing"
+grep -q 'decide every item in that skill'"'"'s `CHECKLIST.md`' "$ROOT/AGENTS.md" || fail "checklist: AGENTS.md does not require the checklist"
+printf 'ok checklist\n'
+
+# Herd procedure: filter decided items, ask the top 10, repeat for the level, then implement from skills only.
+[ -f "$ROOT/skills/herdr/bootstrap.md" ] || fail "bootstrap: missing skills/herdr/bootstrap.md"
+grep -q '/bootstrap --level 1|2|3' "$ROOT/skills/herdr/bootstrap.md" || fail "bootstrap: level flag missing"
+grep -q 'Ask the 10' "$ROOT/skills/herdr/bootstrap.md" || fail "bootstrap: top 10 missing"
+grep -q 'Open a URL only when one of those files contains it' "$ROOT/skills/herdr/bootstrap.md" || fail "bootstrap: URL limit missing"
+grep -q 'skills/herdr/bootstrap.md' "$ROOT/AGENTS.md" || fail "bootstrap: AGENTS.md does not name it"
+grep -q 'skills/herdr/bootstrap.md' "$ROOT/CONTRIBUTING.md" || fail "bootstrap: CONTRIBUTING.md does not name it"
+printf 'ok bootstrap\n'
+
 # Project files do not identify a person. Upstream skills are not part of this scan.
 grep -q 'This repo does not identify a person' "$ROOT/CONTRIBUTING.md" || fail "identity: CONTRIBUTING.md does not forbid personal information"
-for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md sandbox/Containerfile test.sh; do
+for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md sandbox/Containerfile test.sh skills/herdr/bootstrap.md; do
   [ -f "$ROOT/$f" ] || fail "identity: missing $f"
   if grep -Ei 'ty''ler|je''well|gm''ail\.com' "$ROOT/$f" >/dev/null; then
     fail "identity: $f identifies a person"
@@ -339,7 +359,7 @@ done
 emails=$(grep -E -h -o '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
   "$ROOT/README.md" "$ROOT/AGENTS.md" "$ROOT/CONTRIBUTING.md" "$ROOT/apply" \
   "$ROOT/config/config.toml" "$ROOT/agents/independent-reviewer.md" \
-  "$ROOT/sandbox/Containerfile" "$ROOT/test.sh" | grep -v '^tester@example.com$' || true)
+  "$ROOT/sandbox/Containerfile" "$ROOT/test.sh" "$ROOT/skills/herdr/bootstrap.md" | grep -v '^tester@example.com$' || true)
 [ -z "$emails" ] || fail "identity: email in a project file"
 printf 'ok identity\n'
 
