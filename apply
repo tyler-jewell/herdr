@@ -1,0 +1,244 @@
+#!/bin/sh
+# Copy this repo's Herdr config onto the current machine.
+# stdout is one JSON object. stderr is the installer and reload log.
+# Exit 0: config matches this setup. Exit 2: config written, Herdr still missing.
+# Exit 1: config was not applied. Read "next" before doing anything else.
+set -u
+
+ROOT=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+SETUP_VERSION=1
+SRC="$ROOT/config/config.toml"
+
+OS=${HERDR_SETUP_OS:-$(uname -s)}
+HOME_DIR=${HERDR_SETUP_HOME:-$HOME}
+SKIP_INSTALL=${HERDR_SETUP_SKIP_INSTALL:-0}
+SKIP_RELOAD=${HERDR_SETUP_SKIP_RELOAD:-0}
+
+status=failed
+exit_code=1
+written=false
+changed=false
+backup_path=
+config_path=
+herdr_bin=
+install=skipped
+reload=skipped
+reload_detail=
+message=
+next=
+
+json_escape() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/	/\\t/g' | awk 'BEGIN { ORS = "" } NR > 1 { print "\\n" } { print }'
+}
+
+q() {
+  printf '"%s"' "$(json_escape "$1")"
+}
+
+emit() {
+  printf '{\n'
+  printf '  "status": %s,\n' "$(q "$status")"
+  printf '  "exit_code": %s,\n' "$exit_code"
+  printf '  "setup_version": %s,\n' "$SETUP_VERSION"
+  printf '  "os": %s,\n' "$(q "$OS")"
+  printf '  "config_path": %s,\n' "$(q "$config_path")"
+  printf '  "written": %s,\n' "$written"
+  printf '  "changed": %s,\n' "$changed"
+  if [ -n "$backup_path" ]; then
+    printf '  "backup_path": %s,\n' "$(q "$backup_path")"
+  else
+    printf '  "backup_path": null,\n'
+  fi
+  if [ -n "$herdr_bin" ]; then
+    printf '  "herdr": %s,\n' "$(q "$herdr_bin")"
+  else
+    printf '  "herdr": null,\n'
+  fi
+  printf '  "install": %s,\n' "$(q "$install")"
+  printf '  "reload": %s,\n' "$(q "$reload")"
+  if [ -n "$reload_detail" ]; then
+    printf '  "reload_detail": %s,\n' "$(q "$reload_detail")"
+  else
+    printf '  "reload_detail": null,\n'
+  fi
+  printf '  "message": %s,\n' "$(q "$message")"
+  if [ -n "$next" ]; then
+    printf '  "next": %s\n' "$(q "$next")"
+  else
+    printf '  "next": null\n'
+  fi
+  printf '}\n'
+}
+
+finish() {
+  trap - EXIT
+  emit
+  exit "$exit_code"
+}
+
+trap 'status=failed; exit_code=1; message="apply stopped unexpectedly at line $LINENO"; next="Re-run ./apply from a checkout of tyler-jewell/herdr and read this JSON. Do not edit the machine config by hand."; emit; exit 1' EXIT
+
+find_herdr() {
+  herdr_bin=
+  if command -v herdr >/dev/null 2>&1; then
+    herdr_bin=$(command -v herdr)
+    return 0
+  fi
+  if [ -x "$HOME_DIR/.local/bin/herdr" ]; then
+    herdr_bin="$HOME_DIR/.local/bin/herdr"
+    return 0
+  fi
+  return 1
+}
+
+case "$OS" in
+  Darwin|Linux)
+    config_path="$HOME_DIR/.config/herdr/config.toml"
+    ;;
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    appdata=${HERDR_SETUP_APPDATA:-${APPDATA:-}}
+    if [ -z "$appdata" ]; then
+      message="Windows detected ($OS) but APPDATA is unset."
+      next="Run ./apply from Git Bash, or from WSL (that path is Linux). Do not guess the config path."
+      finish
+    fi
+    config_path="$appdata/herdr/config.toml"
+    ;;
+  *)
+    message="Unsupported OS: $OS."
+    next="Supported: macOS (Darwin), Linux, and Windows Git Bash (MINGW, MSYS, CYGWIN). On native Windows PowerShell, install Herdr with the docs installer, then re-run ./apply from Git Bash so the config lands in %APPDATA%\\herdr\\config.toml."
+    finish
+    ;;
+esac
+
+if [ ! -f "$SRC" ]; then
+  message="Missing source config: $SRC."
+  next="Clone https://github.com/tyler-jewell/herdr and run ./apply from that checkout. Do not copy a partial tree."
+  finish
+fi
+
+if ! grep -q "herdr-setup: $SETUP_VERSION" "$SRC"; then
+  message="config/config.toml is not stamped herdr-setup: $SETUP_VERSION."
+  next="Bump the stamp in config/config.toml and SETUP_VERSION in apply together. Refusing to write a config this script does not claim."
+  finish
+fi
+
+dest_dir=$(dirname "$config_path")
+if ! mkdir -p "$dest_dir" 2>/dev/null; then
+  message="Could not create $dest_dir."
+  next="Fix write permission on that directory and re-run ./apply. Nothing was written."
+  finish
+fi
+
+tmp="$dest_dir/config.toml.apply-tmp"
+if ! cp "$SRC" "$tmp" 2>/dev/null; then
+  message="Could not write $tmp."
+  next="Fix write permission on $dest_dir and re-run ./apply. The live config was not replaced."
+  finish
+fi
+
+if [ -f "$config_path" ] && cmp -s "$tmp" "$config_path"; then
+  rm -f "$tmp"
+  written=true
+  changed=false
+elif [ -e "$config_path" ]; then
+  backup_path="$config_path.bak.$(date -u +%Y%m%dT%H%M%SZ)"
+  if ! cp -p "$config_path" "$backup_path" 2>/dev/null; then
+    rm -f "$tmp"
+    message="Refused to replace $config_path because the backup write failed."
+    next="Free space or permissions in $dest_dir, then re-run ./apply. The live config is unchanged."
+    finish
+  fi
+  if ! mv "$tmp" "$config_path" 2>/dev/null; then
+    message="Backup is at $backup_path but replacing $config_path failed."
+    next="Move $backup_path back onto $config_path if the live file is missing, then re-run ./apply."
+    finish
+  fi
+  written=true
+  changed=true
+else
+  if ! mv "$tmp" "$config_path" 2>/dev/null; then
+    rm -f "$tmp"
+    message="Could not move the new config into $config_path."
+    next="Fix permissions on $dest_dir and re-run ./apply."
+    finish
+  fi
+  written=true
+  changed=true
+fi
+
+if ! cmp -s "$SRC" "$config_path"; then
+  status=failed
+  exit_code=1
+  message="Config path does not match the repo file after write: $config_path."
+  next="Compare $config_path with $SRC. If a backup exists, it is the previous file. Do not hand-merge. Re-run ./apply."
+  finish
+fi
+
+if find_herdr; then
+  install=present
+elif [ "$SKIP_INSTALL" = "1" ]; then
+  install=skipped
+else
+  install_log=$(mktemp)
+  if [ -n "${HERDR_SETUP_INSTALL_CMD:-}" ]; then
+    # shortcut: tests inject a fake installer; real runs use https://herdr.dev installers.
+    sh -c "$HERDR_SETUP_INSTALL_CMD" >"$install_log" 2>&1 || true
+  else
+    case "$OS" in
+      Darwin|Linux)
+        curl -fsSL https://herdr.dev/install.sh | sh >"$install_log" 2>&1 || true
+        ;;
+      MINGW*|MSYS*|CYGWIN*|Windows_NT)
+        powershell.exe -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex" >"$install_log" 2>&1 || true
+        ;;
+    esac
+  fi
+  if find_herdr; then
+    install=installed
+    rm -f "$install_log"
+  else
+    install=failed
+    reload_detail=$(awk 'NR <= 20 { print }' "$install_log" 2>/dev/null || true)
+    rm -f "$install_log"
+    status=partial
+    exit_code=2
+    message="Config version $SETUP_VERSION is on disk at $config_path. Herdr is not on PATH and the installer did not leave a binary."
+    next="Read install output in reload_detail. Install from https://herdr.dev/docs/install/ and re-run ./apply. Leave $config_path in place."
+    finish
+  fi
+fi
+
+if [ "$SKIP_RELOAD" = "1" ] || [ -z "$herdr_bin" ]; then
+  reload=skipped
+else
+  reload_log=$(mktemp)
+  if "$herdr_bin" server reload-config >/dev/null 2>"$reload_log"; then
+    reload=reloaded
+  else
+    reload=failed
+    reload_detail=$(awk 'NR <= 20 { print }' "$reload_log" 2>/dev/null || true)
+  fi
+  rm -f "$reload_log"
+fi
+
+status=applied
+exit_code=0
+if [ "$changed" = true ]; then
+  message="Applied Herdr setup $SETUP_VERSION to $config_path."
+else
+  message="Herdr setup $SETUP_VERSION already matches $config_path."
+fi
+if [ "$reload" = "failed" ]; then
+  message="$message Reload did not succeed. A running session may still have the old config."
+  next="If no Herdr server is running, start herdr. If one is running, run: herdr server reload-config. Use the backup_path file only to see what was replaced."
+elif [ "$reload" = "skipped" ]; then
+  next="Start herdr when you want a session. The config is already in the path Herdr reads."
+else
+  next=
+fi
+if [ -n "$backup_path" ]; then
+  message="$message Previous config saved at $backup_path."
+fi
+
+finish

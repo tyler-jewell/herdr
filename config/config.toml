@@ -1,0 +1,62 @@
+# herdr-setup: 1
+# Source of truth for https://github.com/tyler-jewell/herdr
+# ./apply copies this file onto the machine. Local edits are replaced.
+
+onboarding = false
+
+[server]
+# Headless agent panes get a wide terminal when no client is attached.
+headless_cols = 160
+headless_rows = 50
+
+[terminal]
+# Login shells so macOS path_helper and Homebrew PATH exist in new panes.
+shell_mode = "login"
+new_cwd = "follow"
+
+[worktrees]
+directory = "~/.herdr/worktrees"
+
+[remote]
+manage_ssh_config = true
+
+[keys]
+prefix = "ctrl+b"
+# Prefix bindings stay for tmux habits. ctrl+alt chords are the direct set
+# Herdr documents as free across common terminals.
+focus_pane_left = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+previous_tab = ["prefix+p", "ctrl+alt+["]
+next_tab = ["prefix+n", "ctrl+alt+]"]
+new_tab = ["prefix+c", "ctrl+alt+c"]
+split_vertical = ["prefix+v", "ctrl+alt+d"]
+split_horizontal = ["prefix+minus", "ctrl+alt+shift+d"]
+zoom = ["prefix+z", "ctrl+alt+z"]
+
+[theme]
+name = "catppuccin"
+auto_switch = true
+light_name = "catppuccin-latte"
+dark_name = "catppuccin"
+
+[ui]
+pane_borders = "always"
+pane_outer_borders = true
+status_indicators = "symbols"
+window_title = "{hostname}: {workspace}"
+
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "machine", "workspace", "tab"],
+  ["agent", "state_text"],
+]
+
+[ui.toast]
+delivery = "herdr"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "bottom-right"
