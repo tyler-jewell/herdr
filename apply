@@ -76,7 +76,7 @@ finish() {
   exit "$exit_code"
 }
 
-trap 'status=failed; exit_code=1; message="apply stopped unexpectedly at line $LINENO"; next="Re-run ./apply from a checkout of tyler-jewell/herdr and read this JSON. Do not edit the machine config by hand."; emit; exit 1' EXIT
+trap 'status=failed; exit_code=1; message="apply stopped unexpectedly at line $LINENO"; next="Re-run ./apply from a checkout of this repo and read this JSON. Do not edit the machine config by hand."; emit; exit 1' EXIT
 
 find_herdr() {
   herdr_bin=
@@ -113,7 +113,7 @@ esac
 
 if [ ! -f "$SRC" ]; then
   message="Missing source config: $SRC."
-  next="Clone https://github.com/tyler-jewell/herdr and run ./apply from that checkout. Do not copy a partial tree."
+  next="Run ./apply from a complete checkout of this repo. Do not copy a partial tree."
   finish
 fi
 

@@ -1,0 +1,10 @@
+# Tools for a non-root Herdr install. The test does not run as root.
+FROM docker.io/library/debian:bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl git bash \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --create-home --uid 1000 --shell /bin/bash tester
+
+USER tester
+WORKDIR /home/tester

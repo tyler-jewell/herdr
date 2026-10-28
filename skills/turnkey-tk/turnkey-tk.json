@@ -1,0 +1,33 @@
+{
+  "binaryVersion": "0.7.0",
+  "digest": "75e972750d716af7e801e2562ea7d57017aadb664b37d132db096c6db9a4ab06",
+  "files": [
+    "SKILL.md",
+    "bootstrapping-organization/SKILL.md",
+    "deploying-signing-broker/SKILL.md",
+    "docs/activities.md",
+    "docs/authentication.md",
+    "docs/commands.md",
+    "docs/git-signing.md",
+    "docs/gpg-signing.md",
+    "docs/resources.md",
+    "docs/secrets.md",
+    "docs/sessions.md",
+    "docs/ssh-agent.md",
+    "inspecting-agents/SKILL.md",
+    "managing-identities/SKILL.md",
+    "managing-policies/SKILL.md",
+    "managing-secrets/SKILL.md",
+    "monitoring-activities/SKILL.md",
+    "provisioning-agent-identity/SKILL.md",
+    "provisioning-session-agent/SKILL.md",
+    "references/approval-models.md",
+    "references/cli-convention.md",
+    "references/policy-language.md",
+    "references/policy-patterns.md",
+    "revoking-agent-keys/SKILL.md",
+    "sidecar-patterns/SKILL.md",
+    "signing-git-commits/SKILL.md",
+    "using-ssh/SKILL.md"
+  ]
+}
