@@ -1,6 +1,5 @@
 # herdr-setup: 1
-# Source of truth for https://github.com/tyler-jewell/herdr
-# ./apply copies this file onto the machine. Local edits are replaced.
+# Source of truth for this repo. ./apply copies this file onto the machine. Local edits are replaced.
 
 onboarding = false
 

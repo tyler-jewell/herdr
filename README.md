@@ -1,14 +1,18 @@
 # herdr
 
-Public, personal Herdr setup for [tyler-jewell](https://github.com/tyler-jewell).
+![commit status](badges/commit.svg)
+![tests run](badges/tests.svg)
+![test seconds](badges/time.svg)
 
-This is a dotfiles repo for [Herdr](https://herdr.dev), the terminal multiplexer coding agents run in. One script applies this setup to the computer it is run on: macOS, Linux, Windows Git Bash, or WSL, on any machine.
+Pills are rewritten by `./test.sh`. They describe that run: pass or fail for the latest commit with local changes included, how many test cases ran, and the total seconds including container startup.
+
+This is a setup repo for [Herdr](https://herdr.dev), the terminal multiplexer coding agents run in. One script applies this setup to the computer it is run on: macOS, Linux, Windows Git Bash, or WSL, on any machine.
 
 ```sh
-git clone https://github.com/tyler-jewell/herdr.git
-cd herdr
 ./apply
 ```
+
+Run that from a checkout of this repo.
 
 `./apply` prints one JSON object and exits `0` when `config/config.toml` is now the Herdr config on that machine. Exit `2` means the file is in place and Herdr itself is still missing. Exit `1` means the file was not applied. The `next` field says what to do. Do not guess past it.
 
@@ -38,6 +42,9 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `config/config.toml` | The config that `apply` copies. |
 | `AGENTS.md` | How an agent sets a machine up with this repo. |
 | `CONTRIBUTING.md` | Rules for changing the setup. |
-| `tests/apply_test.sh` | Checks apply against a fake home directory. |
+| `test.sh` | The only test. Default arch `macos` runs the checks in an Apple container. |
+| `agents/independent-reviewer.md` | Reviews a change. A person or CI/CD can call it. |
+| `skills/turnkey-tk` | Official `tk` skill. Secrets and keys go through `tk` only. |
+| `badges/` | Pills for the last local test: result, cases, seconds. |
 
-Run `./tests/apply_test.sh` before sending a change.
+Run `./test.sh` before sending a change. The report stays in four sections even when the test fails.
