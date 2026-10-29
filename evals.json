@@ -1,0 +1,75 @@
+{
+  "about": "Purpose: the agent evals (an id and a prompt per setup version), the local models that run and judge them, and the option lists the judge must choose from. Change when: an eval is added for a reason a scored run gave, a model changes, a setup version is bumped, or the judge needs an option it lacks. Not for: results (evals.jsonl), the judge's instructions (REVIEWER.md), or what an eval tests (the judge decides that).",
+  "models": {
+    "agent": "Qwen3.6-35B-A3B-Q4_K_M",
+    "judge": "gpt-oss-20b-MXFP4"
+  },
+  "judge_fields": {
+    "domain": [
+      "setup-and-install",
+      "configuration",
+      "terminal-orchestration",
+      "agent-orchestration",
+      "coding",
+      "debugging",
+      "code-review",
+      "testing-and-evals",
+      "documentation",
+      "security-and-secrets",
+      "research",
+      "data-and-analysis",
+      "operations",
+      "other"
+    ],
+    "task_type": [
+      "question",
+      "plan",
+      "implementation",
+      "investigation",
+      "review",
+      "orchestration",
+      "explanation",
+      "refusal"
+    ],
+    "outcome": [
+      "completed",
+      "partial",
+      "off-task",
+      "refused",
+      "failed",
+      "no-output"
+    ],
+    "capability": [
+      "instruction-following",
+      "skill-use",
+      "context-gathering",
+      "tool-use",
+      "shell-use",
+      "file-editing",
+      "code-generation",
+      "code-understanding",
+      "planning",
+      "decision-making",
+      "question-asking",
+      "scope-control",
+      "safety",
+      "verification",
+      "error-recovery",
+      "efficiency",
+      "long-context",
+      "multi-agent-coordination",
+      "communication"
+    ]
+  },
+  "versions": [
+    {
+      "setup": "1",
+      "evals": [
+        {
+          "id": "one-question",
+          "prompt": "ask me 1 question that will help you bootstrap herdr on this machine"
+        }
+      ]
+    }
+  ]
+}

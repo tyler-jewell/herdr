@@ -1,89 +1,124 @@
 # Contributing
 
-This file is the change file. Which file a rule belongs in is the hard rule at the top of `AGENTS.md`. Do not restate machine setup here.
+Purpose: the rules for changing this repo, for people and agents alike. A change that breaks one is not done.
+Change when: a rule for editing, checking, evaluating, or merging changes.
+Not for: setting up or fixing a machine (`AGENTS.md`), what the project is (`README.md`).
 
-These rules apply to every change, including changes made by an agent. A change that does not follow them is not done.
+Every agent working in this repo reads this file and then `README.md` at the start of its session, before any change. Which file a rule belongs in is the hard rule at the top of `AGENTS.md`.
 
-The point of this repo is that every machine using this setup runs the same Herdr config. `./apply` is how a change leaves git and lands on a machine. A patch that edits a live config, documents a manual step, or only updates one computer is incomplete.
+The point of this repo is that every machine runs the same Herdr config. `./apply` is how a change leaves git and lands on a machine. A patch that edits a live config, documents a manual step, or updates only one computer is incomplete.
 
 ## Principles
 
-- **KISS**: Keep it simple. No clever tricks. Prefer obvious over clever.
-- **SSOT**: Single Source of Truth. Each fact lives in exactly one place. If you need it elsewhere, point to it.
+- **KISS**: Keep it simple. Prefer obvious over clever.
+- **SSOT**: Each fact lives in exactly one place. Elsewhere, point to it.
 - **DRY**: Don't repeat yourself. Duplication breeds drift.
-- **No cruft**: If a file, code, or doc is not pulling its weight, remove it. Better to have less than to have noise.
-- **No file is a good file**: If something doesn't need to exist, delete it. Every file must earn its keep.
-- **Take what they give us**: Never add ad-hoc setup, conventions, or scaffolding. When using an official tool, package, or installer, take its structure as-is. Don't invent our own patterns on top of theirs.
+- **No cruft**: If a file, line of code, or doc is not pulling its weight, remove it.
+- **No file is a good file**: Every file must earn its keep.
+- **Take what they give us**: When using an official tool, package, or installer, take its structure as-is. Don't invent patterns on top of it.
+
+## Layout
+
+The repo is flat. Add a folder only when an upstream tool requires one: `skills/` for agent skills, `.github/` for CI. Each file has one purpose. When a file starts doing a second job, split it.
+
+Every file this repo owns opens with three lines, in its own comment syntax:
+
+- **Purpose:** what it is for, in one sentence.
+- **Change when:** the only reasons to edit it.
+- **Not for:** what belongs elsewhere, naming that file.
+
+Markdown puts them in its first paragraph. `evals.json` puts them in its `about` field. There are two exceptions. Skill files keep their published format, though our own `CHECKLIST.md` files and `skills/herdr/bootstrap.md` carry the header. `evals.jsonl` holds rows only, and its header lives in `results.ts`. `checks.ts` enforces this.
+
+## Integration targets
+
+Build for two integrations, in this order. Use what each one ships, especially its built-in integrations, before writing anything of our own:
+
+1. **Herdr itself.** Its commands, its real config keys, its agent detection, and its built-in integrations (`herdr integration install <kind>`). Do not rebuild what Herdr already does.
+2. **Pi, the bare-bones coding harness** (`pi`, Herdr kind `pi`). Configure it only through its own files under `PI_CODING_AGENT_DIR` (`models.json`, `settings.json`), and connect it with Herdr's built-in `pi` integration.
+
+Every agent eval runs Pi inside Herdr, and the judge is Pi too. Both use local models, so an eval needs no cloud account and no key. We assume a change that works with Herdr and Pi also works for at least 95% of the other harnesses Herdr supports (Grok, Claude, opencode, and the rest). Add harness-specific code only after a scored run shows that harness failing where Pi passes.
 
 ## No personal information
 
-This repo does not identify a person. No legal name, email address, account name, location, hostname, or home path. A change that adds one is not done. `evals.ts` checks the files this repo writes.
-
-An upstream skill stays as that project published it. Do not add a person to it.
+This repo identifies no person: no legal name, email address, account name, location, hostname, or home path. That includes the sessions inside `evals.jsonl`. The one exception is this repo's own GitHub slug, inside its raw and clone URLs, because the one-command setup must name where it comes from. `checks.ts` scans every file. An upstream skill stays as that project published it.
 
 ## Goals
 
-1. One config, `config.toml`, applied across macOS, Linux, and Windows Git Bash via `./apply`. Machines converge by copying that file, never merging.
-2. `./apply` is idempotent and safe: it backs up any differing live config before replacing it, refuses unknown OS paths, and always emits the JSON report defined in `AGENTS.md`.
-3. Every machine you claim is updated meets the good-machine definition in `AGENTS.md` by running `./apply` from a current checkout. Shipping the git commit is not shipping the setup.
+1. One config, `config.toml`, applied across macOS, Linux, and Windows Git Bash by `./apply`. Machines converge by copying that file, never by merging.
+2. `./apply` is idempotent and safe. It backs up a differing live config before replacing it, refuses unknown OS paths, and always prints the JSON report defined in `AGENTS.md`.
+3. A machine you claim is updated meets the good-machine definition in `AGENTS.md`, by running `./apply` from a current checkout. Shipping the commit is not shipping the setup.
 
 ## Skills
 
 Every tool or service this repo uses has its skill in `skills/`. An agent reads that skill before using the tool. A skill that lives only on one computer does not count.
 
-Use the official upstream skill when one exists and leave its published files untouched ("Take what they give us"):
+Use the official upstream skill when one exists, and leave its published files untouched. Each one records its origin in its `SOURCE` file:
 
-- `skills/turnkey-tk`: the `tk` 0.7.0 package from `tk skills install --into skills` (<https://github.com/tkhq/tk>), including `turnkey-tk.json`, tracked in `skills/turnkey-tk.SOURCE`. Do not add another way to handle secrets or keys.
+- `skills/turnkey-tk`: the `tk` 0.7.0 package from `tk skills install --into skills` (<https://github.com/tkhq/tk>), including `turnkey-tk.json`. Do not add another way to handle secrets or keys.
 - `skills/container`: the official Apple container skill from `apple/container`, including its `references/`.
-- `skills/herdr/SKILL.md`: the official Herdr skill from `herdrdev/herdr` tag `v0.9.5`, tracked in `skills/herdr/SOURCE`.
-- `skills/ponytail/SKILL.md`: pinned and licensed in `skills/ponytail/SOURCE`. How a published skill stays current is `skills/author-skill/references/vendor.md`.
+- `skills/herdr/SKILL.md`: the official Herdr skill from `herdrdev/herdr` tag `v0.9.5`.
+- `skills/ponytail/SKILL.md`: pinned and licensed. How a published skill stays current is `skills/author-skill/references/vendor.md`.
 
-When you need a third-party skill that is not already in this repo, fetch it with `npx skills`, then copy it into `skills/` by hand and commit it. `npx skills` is only how you fetch; the committed copy is the one agents use.
+To add a third-party skill, fetch it with `npx skills`, copy it into `skills/` by hand, and commit it. When no upstream skill exists, write one with `skills/author-skill/SKILL.md`, in the format of `skills/turnkey-tk`.
 
-When no upstream skill exists, write one in `skills/` and commit it. Follow `skills/author-skill/SKILL.md` to do that. Every skill this repo writes follows the format of `skills/turnkey-tk`.
-
-Each skill has one `CHECKLIST.md` beside its `SKILL.md`. That file is our live decision list for the skill; update it in the same change when the skill's commands or docs change. Do not copy it into another file. Because `CHECKLIST.md` (and `skills/herdr/bootstrap.md`) are our files beside upstream packages, set them aside before running an upstream installer or update and put them back after.
-
-`skills/herdr/bootstrap.md` is the questioning procedure for those checklists. Change the rounds, the question count, or the implementation limit there. It has no `CHECKLIST.md` of its own. Do not copy the procedure into another file.
+Each skill has one `CHECKLIST.md` beside its `SKILL.md`: our live decision list for it. Update it in the same change when the skill's commands or docs change. `skills/herdr/bootstrap.md` is the questioning procedure for those checklists; change rounds, question count, or the implementation limit there. Both are our files beside upstream packages, so set them aside before running an upstream installer or update, and put them back after.
 
 ## Scripts
 
-Script in TypeScript. Follow `skills/agent-ready/SKILL.md`. Do not add a Python file or a shell script beside `apply`.
+Script in TypeScript (Deno), following `skills/agent-ready/SKILL.md`. `apply` is the one shell script, because it must run before anything else exists. Do not add a Python file or another shell script.
 
-`setup.ts` is the one public script (`deno run --allow-run --allow-read --allow-write --allow-net setup.ts` from a checkout or raw URL). It runs `apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. Do not add a second public script.
+| File | Job |
+| --- | --- |
+| `setup.ts` | The one public entry. Its command is in `AGENTS.md`. Do not add a second one. |
+| `evals.ts` | The one eval runner, on the host: the sandbox and its modes. |
+| `checks.ts` | Behavior checks, inside the sandbox. |
+| `agent.ts` | The agent eval, inside the sandbox. |
+| `results.ts` | Row shapes, metrics, validation, and the README results block. |
+| `lib.ts` | Helpers two or more of those share. |
 
-## Evals (no traditional tests)
+## Evals
 
-**There are no traditional unit/integration tests in this repo. Only evaluations (evals).**
+There are no unit tests, only evals.
 
-- **Single runner**: `evals.ts` is the only eval runner. Do not add a second runner or eval file. The argument is the arch, and the default is `macos`. `macos` builds `sandbox` and runs the checks as uid 1000 in a read-only Apple container with no host mounts and no capabilities. `linux` runs those same checks in Docker with the same image and isolation. The live half installs Herdr inside the container and checks config, agents, and core commands. Any other arch fails without guessing a runtime. `.github/workflows/test.yml` runs `macos` on the self-hosted `mac-studio` runner and `linux` on hosted `ubuntu-latest`. Add an evaluation in `evals.ts` for new behavior (a new OS path, a new refusal, a new exit code, a new arch). Do not point checks at the host home. stdout is four sections (`test`, `memory`, `system`, `result`), even when an eval fails. As each step finishes, `evals.ts` appends a Server-Sent Event to `eval.events.sse`. That file is the chronological stream; do not treat it as the report, and do not commit it.
-- **Badges**: `./evals.ts` rewrites `badges/commit.svg`, `badges/tests.svg`, and `badges/time.svg` from that run: pass or fail for the working tree (latest commit plus local changes), the number of cases that ran, and wall-clock seconds including container startup. Do not edit those numbers by hand.
-- **README status**: `./evals.ts` rewrites the status block in `README.md` from that same run: the value list, every step, the memory sample, the system summary, and the grade table. The value list is only scored agent runs from `eval-results.json`. A core check is not value. Do not edit that block by hand, and do not put a home path or an account in it.
-- **Eval data**: Evals are `eval-results.json`: one matrix per `SETUP_VERSION`, then a domain, then its evals, then one grade per model (`local` or `cloud`). A new setup version gets its own entry and does not inherit grades. `./evals.ts` renders every version into `agents/models.md`, `badges/evals.svg`, and the README value tally on every run. Add a score only for a run that was scored by `agents/independent-reviewer.md`. Do not invent a grade, and do not edit the rendered table or heatmap by hand.
-- **Must pass**: `./evals.ts` must pass before the change is done. When a change affects install, reload, or a live path, also run a real `./apply` on a machine you can use and report which systems ran.
+- **Checks.** `./evals.ts` (default `macos`) builds `Containerfile` and runs `checks.ts` as uid 1000, in an Apple container with a read-only root, no capabilities, a tmpfs home, and no host mounts. `./evals.ts linux` runs the same image and checks in Docker. `.github/workflows/test.yml` runs both on every push. They must pass before a change is done.
+- **What to check.** Add a check when behavior is added or changed: a new OS path, refusal, exit code, report field, or handoff. Check what a command does, never the wording of a doc. Never point a check at the host home.
+- **Shell.** `./evals.ts macos --shell` opens the same sandbox with the tree in `~/src`, so you can try a change by hand. It records nothing.
+- **Agent eval.** `./evals.ts macos --agent` runs locally, never in CI. Inside the sandbox, `agent.ts` installs Herdr with `./apply` and runs the eval prompt with Pi inside Herdr on the agent model. Then Pi on the judge model scores the whole session with `REVIEWER.md`, using read-only tools. The copy the agent gets never includes `evals.jsonl`. Both models come from one llama-server on the host, in router mode, reachable from the sandbox at its gateway:
+
+  ```text
+  llama-server --models-dir <models folder> --models-max 1 --host 127.0.0.1,192.168.64.1 --port 9931 -c 65536 --jinja
+  ```
+
+  `HERDR_EVAL_MODEL_URL` overrides the address. On macOS, the application firewall must allow incoming connections to `llama-server`.
+- **Definitions.** `evals.json` holds each eval as an `id` and a `prompt` per setup version. It also holds the two model ids and the `judge_fields` option lists. An eval does not say what it tests; the judge decides from the work and may only choose from those lists. Extend a list when a run needs an option it lacks. There is one eval, `one-question`. Add another only for a reason a scored run gave you.
+- **Results.** Each scored run appends one row to `evals.jsonl`, carrying:
+  - the verdict: grade, domain, task type, outcome, a grade with evidence per capability, depth, reason, and findings;
+  - both whole Pi sessions, the agent's and the judge's;
+  - the metrics measured from each session: seconds, turns, tool calls by name, tool errors, tokens (input, output, cache read, cache write), and compactions.
+
+  Then `evals.ts` re-renders the results block in `README.md` from the latest row per model. Never edit `evals.jsonl` or that block by hand, not even to fix a number; fix the code and run again. `checks.ts` fails when a row's metrics differ from its sessions, or when the block differs from what the rows render. A new setup version gets its own rows and inherits no grade.
+- **Live machines.** When a change affects install, reload, or a live path, also run a real `./apply` on a machine you can use, and report which systems ran.
 
 ## Required for every change
 
-- Follow `skills/ponytail/SKILL.md` on every change.
-- Follow `skills/repo-protection/SKILL.md` for the repository lock. The committed policy (`skills/repo-protection/references/policy.json`) is the source of truth. Do not leave the lock only on the host.
-- Behavior changes land in `apply` or `config.toml`, not in a side path.
-- Keys in `config.toml` must be real Herdr config keys from <https://herdr.dev/docs/config-reference/>. Do not invent keys.
-- When the applied config's meaning changes, bump `SETUP_VERSION` in `apply` and the `herdr-setup:` line in `config.toml` together, and add the new version entry to `eval-results.json`.
+- Follow `skills/ponytail/SKILL.md`.
+- Follow `skills/repo-protection/SKILL.md` for the repository lock. The committed policy, `skills/repo-protection/references/policy.json`, is the source of truth. Do not leave the lock only on the host.
+- Behavior lands in `apply` or `config.toml`, not in a side path.
+- Keys in `config.toml` are real Herdr keys from <https://herdr.dev/docs/config-reference/>. Do not invent keys.
+- When the applied config's meaning changes, bump `SETUP_VERSION` in `apply` and the `herdr-setup:` stamp in `config.toml` together, and add that version to `evals.json`.
 - After the change is on `main`, run `./apply` on each Herdr machine you are responsible for, and keep the JSON. A machine you cannot reach stays listed as not updated.
 
 ## Out of scope
 
 - Herdr product bugs. Report those upstream.
 - Dotfiles other than this Herdr config.
-- Per-machine exceptions inside `config.toml`. If a machine truly needs a different value, stop and ask. Silent forks are how the herd splits.
-- Unsigned commits, force-pushes, or moved/deleted tags on any branch. GitHub rejects unauthenticated, unsigned, or non-fast-forward pushes. The public can read, clone, and fork; a fork is a different repository.
+- Per-machine exceptions in `config.toml`. If a machine truly needs a different value, stop and ask. Silent forks are how the herd splits.
+- Unsigned commits, force-pushes, and moved or deleted tags, on any branch. GitHub rejects them. The public can read, clone, and fork; a fork is a different repository.
 
 ## Pull requests and merging
 
-Signed commits are required on all branches. The authenticated repository owner can merge signed commits directly into `main` or via a pull request after evals pass; unauthenticated, unsigned, or force-pushes are rejected by the repository ruleset.
+Commits are signed on every branch. The authenticated owner merges signed commits into `main`, directly or by pull request, after the evals pass.
 
-When opening a pull request or recording a change, explain the setting in one paragraph: what a person sees in Herdr, and why it is the default for every machine. Paste the `./evals.ts` result. List machines where `./apply` has already been run, and machines still pending.
-
-Review uses the independent reviewer named in the Agents section of `AGENTS.md`.
+A pull request explains the setting in one paragraph: what a person sees in Herdr, and why it is the default for every machine. Paste the `./evals.ts` result. List the machines where `./apply` has run and those still pending. Review uses `REVIEWER.md`.
 
 Agents do not merge their own change and then hand-edit a client to match. The client runs `./apply`.

@@ -1,6 +1,8 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. The lock is `skills/repo-protection/references/policy.json`.
+Purpose: the live decision list for this skill. Decide every item before using the skill. The lock is `skills/repo-protection/references/policy.json`.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 ## Questions
 

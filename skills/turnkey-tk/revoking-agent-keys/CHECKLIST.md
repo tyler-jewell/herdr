@@ -1,6 +1,8 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. Update this file when the skill, its CLI, or its docs change.
+Purpose: the live decision list for this skill. Decide every item before using the skill.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 CLI: `tk 0.7.0` at `/tmp/tk-bin/tk` (`tk --version`). Not on `PATH` and not installed into a home directory. Help checked: `profile` (`create`, `set`, `delete`), `user` (`tag create`, `create`, `get`, `delete`), `policy` (`create`, `update`, `evaluations`), `api-key` (`list`, `delete`), `whoami`, and `activity get`. `api-key delete` requires `--user-id` and at least one `--id`. `api-key list` requires exactly one of `--user-id` or `--all-users`, and at most one of `--expiring-within`, `--expired`, or `--long-lived`. `policy update` takes only `--input-json` or `--input-file`. `profile delete` help says credential files are kept. `whoami` is how a deleted key is proved dead.
 

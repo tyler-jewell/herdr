@@ -1,13 +1,15 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. The official skill is `skills/container/SKILL.md` and `skills/container/references/`.
+Purpose: the live decision list for this skill. Decide every item before using the skill. The official skill is `skills/container/SKILL.md` and `skills/container/references/`.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 ## Questions
 
 1. Which workload shape and image source apply?
-- one application container built from `sandbox/Containerfile` (`debian:bookworm-slim`) via `container build` and started with `container run`
+- one application container built from `Containerfile` (`debian:bookworm-slim`) via `container build` and started with `container run`
 - a persistent `container machine` VM or experimental `container cluster`
-answered: one application container built from `sandbox/Containerfile` (`debian:bookworm-slim`) via `container build` and started with `container run`
+answered: one application container built from `Containerfile` (`debian:bookworm-slim`) via `container build` and started with `container run`
 
 2. Which user and capability profile does the container run under?
 - non-root `--user 1000:1000` with `--cap-drop ALL` and `--read-only` root filesystem

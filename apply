@@ -1,5 +1,8 @@
 #!/bin/sh
-# Copy this repo's Herdr config onto the current machine.
+# Purpose: copy config.toml onto this machine, install Herdr if missing, reload a running server.
+# Change when: a destination path, the install or reload step, a refusal, or a report field changes.
+# Not for: config values (config.toml), the public entry (setup.ts), what the report means (AGENTS.md).
+#
 # stdout is one JSON object. stderr is the installer and reload log.
 # Exit 0: config matches this setup. Exit 2: config written, Herdr still missing.
 # Exit 1: config was not applied. Read "next" before doing anything else.
@@ -227,7 +230,8 @@ fi
 
 if [ "$SKIP_RELOAD" = "1" ] || [ -z "$herdr_bin" ]; then
   reload=skipped
-elif ! "$herdr_bin" status server >/dev/null 2>&1; then
+elif ! "$herdr_bin" status server --json 2>/dev/null | grep -q '"running": *true'; then
+  # status server exits 0 even when no server is running; the JSON says which.
   reload=skipped
 else
   reload_log=$(mktemp)

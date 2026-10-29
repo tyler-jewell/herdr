@@ -1,6 +1,8 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. Update this file when the skill, its CLI, or its docs change.
+Purpose: the live decision list for this skill. Decide every item before using the skill.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 CLI: `tk 0.7.0` from `/tmp/tk-bin/tk` (`tk` is not on `PATH`). Help only, no agent started. Confirmed groups: `wallet create` (`--input-json` or `--input-file` only), `gpg keys` (`create` requires `--wallet-id` and `--user-id` and registers an existing key for that user id; `add` requires `--key` when the wallet holds more than one PGP key; `export` prints an armored public block whose self-certification is signed; `list`, `remove`), `gpg sign` (`--key`, `--file`, `--output`), `gpg agent serve` (foreground, requires `--key`, `--socket`, `--socket-mode` default `600`), `ssh keys` (`create --name`, `add --private-key-id`, `list`, `remove --key`), `ssh public-key` (`--key`), `ssh git-sign` (ssh-keygen-shaped args only; Git calls this, the skill does not), `ssh agent start` (`--key` repeatable, `--allowed-hosts-file`, `--allow-namespace` repeatable, `--socket`, `--pid-file`, `--socket-mode` default `600`), `git co-author` (one message file), `policy create`, `activity wait` (`--timeout` default `60`). There is no `tk broker` subcommand. Local `git version 2.54.0 (Apple Git-157)`; `git hook list commit-msg` exits 0. `gpg` is absent. `ssh-keygen` is `/usr/bin/ssh-keygen`.
 

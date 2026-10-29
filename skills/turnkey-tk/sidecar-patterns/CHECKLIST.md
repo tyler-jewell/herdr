@@ -1,6 +1,8 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. Update this file when the skill, its CLI, or its docs change.
+Purpose: the live decision list for this skill. Decide every item before using the skill.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 CLI: `tk 0.7.0` at `/tmp/tk-bin/tk` (`tk --version`). Not on `PATH` and not installed into a home directory. Help checked: `profile`, `whoami`, `secret env` (needs `--name-prefix` or `--property`), `session` (`status` default `--warn-before 48h`, `request --replace`, `provision` default `--expires-in 7d`, `activate`), `ssh agent start` (default `--socket-mode 600`), and `gpg agent serve` (foreground, requires `--key`, default `--socket-mode 600`). `profile delete` help says credential files are kept.
 

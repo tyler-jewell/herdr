@@ -1,5 +1,11 @@
 # Agents
 
+Purpose: how an agent sets up, applies, and checks Herdr on a machine, and which agent files exist.
+Change when: machine setup, the `apply` or `setup.ts` report, or the rules while setting up change.
+Not for: changing this repo (`CONTRIBUTING.md`), what the project is (`README.md`), an agent's own job (its own file).
+
+**Start every session by reading `CONTRIBUTING.md`, then `README.md`.** Do it before you act, every time.
+
 ## Which file
 
 Hard rule. One question, one file. No exceptions and no copies.
@@ -14,13 +20,21 @@ A sentence about both gets split. Each file keeps its own sentence. Do not paste
 
 This file is the machine file. Read it before installing or fixing Herdr on a computer.
 
-Read `README.md` for the current status of this project before you act, and keep that status in mind until the task is done. Do not copy that status into this file.
-
 Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https://herdr.dev/docs/>. This repo is the config. When they disagree, the product docs win for how Herdr works, and this repo wins for which settings belong on a machine.
 
 ## Set up a machine
 
-A new machine starts with `setup.ts`. That script is the one-command entry (`deno run --allow-run --allow-read --allow-write --allow-net setup.ts`): it runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required.
+A new machine starts with `setup.ts`. That script is the one-command entry. It needs Deno (<https://docs.deno.com/runtime/getting_started/installation/>) and git, and nothing else:
+
+```text
+deno run --reload --allow-run --allow-read --allow-write --allow-net --allow-env https://raw.githubusercontent.com/tyler-jewell/herdr/main/setup.ts --agent <kind>
+```
+
+From a checkout, use the same command on `setup.ts`. With no checkout, it clones this repo to `~/.herdr/harness` and fast-forwards it on later runs. It refuses a harness with local changes, and a folder there that is not a checkout. Then it runs `./apply` and hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required:
+
+- Inside a Herdr pane with `--agent <kind>`, it starts that agent as `bootstrap` in a sibling pane and gives it the prompt. The kind is the one the human named. Do not pick one.
+- Inside a Herdr pane without `--agent`, it lists the kinds. Ask the human, then run it again.
+- Outside Herdr, it only prints the prompt. It does not control Herdr from outside.
 
 `./apply` is the idempotent config applier. To apply or re-apply the config on a machine:
 
@@ -57,6 +71,15 @@ A machine is good when all of these hold:
 | `message` | What happened. |
 | `next` | The only follow-up. `null` when none is required. |
 
+`setup.ts` wraps that report as `apply` and adds:
+
+| Field | Meaning |
+| --- | --- |
+| `harness` | `path` of the checkout it ran, and its git `revision`. |
+| `prompt` | The `/bootstrap` prompt. `required` is always `true`. |
+| `handoff` | `started`, `needs-kind`, `printed`, or `failed`. `failed` exits `1` and has `handoff_detail`. |
+| `next` | The only follow-up for the handoff. |
+
 `partial` (`exit 2`): the config is already correct. Install Herdr from <https://herdr.dev/docs/install/> and run `./apply` again. Do not rewrite the config while doing that.
 
 `failed` (`exit 1`): nothing you wanted is applied, or the script refused to risk the existing file. Do what `next` says. Do not invent a config path for an OS the script rejected.
@@ -67,7 +90,7 @@ A machine is good when all of these hold:
 - Do not reinstall Herdr when `install` is `present`.
 - `apply` installs Herdr only when the binary is missing, using the official installer (`https://herdr.dev/install.sh`, or `install.ps1` from Git Bash). A failed install must not be papered over by copying binaries from another machine.
 - A backup is the previous config, for reading. Do not merge it back. The repo file is the setup.
-- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`) exist so `evals.ts` can use a fake home. Never set them on a real machine.
+- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`, `HERDR_SETUP_REPO`) exist so `checks.ts` can use a fake home inside the sandbox. Never set them on a real machine.
 - WSL is Linux. Native Windows is Git Bash. PowerShell alone cannot host `./apply`.
 - On a machine, run `./apply` and stop. Do not change shells, git, editors, SSH, or anything else.
 - A secret or a key is handled only with `tk` (<https://github.com/tkhq/tk>). Read `skills/turnkey-tk/SKILL.md` and follow it. Do not print the value, and do not put it in this repo or in any other store.
@@ -82,10 +105,9 @@ On the machine you just set up, run `./apply` a second time. `changed` must be `
 
 ## Agents
 
-### Independent reviewer
+| Agent | File | When |
+| --- | --- | --- |
+| Bootstrap | `skills/herdr/bootstrap.md` | `setup.ts` hands it the `/bootstrap` prompt on a new machine. |
+| Reviewer | `REVIEWER.md` | A change needs review (a person or CI starts it), or `./evals.ts macos --agent` scores a run. |
 
-File: `agents/independent-reviewer.md`
-
-When: a change needs a review, or a Herdr agent run needs a score. A person or CI/CD can start it.
-
-How: give the agent `agents/independent-reviewer.md` and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. Its review procedure and required reading live in `agents/independent-reviewer.md`. A score is recorded in `eval-results.json`.
+Give the reviewer `REVIEWER.md` and the change. Do not set its depth or its grade. Scores are recorded only by `./evals.ts macos --agent` (`CONTRIBUTING.md`, Evals).

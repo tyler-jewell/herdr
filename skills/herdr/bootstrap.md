@@ -9,6 +9,10 @@ description: >
 
 # Bootstrap
 
+Purpose: the questioning procedure that decides every open `CHECKLIST.md` item with the human, then builds what the answers select.
+Change when: the rounds, the question count, the scoring, or the implementation limit changes.
+Not for: the decisions themselves (each skill's `CHECKLIST.md`), how to control Herdr (`skills/herdr/SKILL.md`).
+
 Stand up a system from the skills in this repo. Decide first. Implement after the last round.
 
 ## Level
@@ -19,7 +23,7 @@ Stand up a system from the skills in this repo. Decide first. Implement after th
 
 Do this before round 1, and again after each round's answers are written.
 
-Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `config.toml`, `apply`, `sandbox/Containerfile`, `evals.ts`, `AGENTS.md`, and `CONTRIBUTING.md`.
+Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `CONTRIBUTING.md`, `README.md`, `AGENTS.md`, `config.toml`, `apply`, and `Containerfile`.
 
 An item is already answered only when that evidence forces one of its choices, or the item itself names that choice as the current setup. Under the question, write `answered: ` and the choice text. Leave the other choices. An item that already has an `answered:` line stays closed. Anything else stays open. One forced choice, or it stays open.
 

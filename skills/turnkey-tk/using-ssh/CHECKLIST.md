@@ -1,6 +1,8 @@
 # Checklist
 
-This is the live checklist for this skill. Decide every item before using the skill. Update this file when the skill, its CLI, or its docs change.
+Purpose: the live decision list for this skill. Decide every item before using the skill.
+Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
+Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
 CLI: `tk 0.7.0` from `/tmp/tk-bin/tk` (`tk` is not on `PATH`). Help only: no `ssh agent start`, and no key or registry was written. `tk ssh` has `keys` (`create --name`, `add --private-key-id`, `list`, `remove --key`), `public-key` (`--key`), `git-sign`, and `agent` (`start`, `stop`, `status`). `ssh agent start` takes repeatable `--key`, `--allowed-hosts-file`, repeatable `--allow-namespace`, `--socket`, `--pid-file`, and `--socket-mode` (default `600`). With `--socket` and no `--pid-file`, the pid file is `SOCKET.pid`. `stop` and `status` take only `--socket` and `--pid-file`. `policy create` and `policy evaluations --activity-id` exist. `tk broker --help` exits 2: unrecognized subcommand. Local git is 2.54.0. `gpg` is absent. `ssh-keygen` is `/usr/bin/ssh-keygen`.
 
