@@ -14,7 +14,7 @@ This is the setup repo for [Herdr](https://herdr.dev). The status block is the c
 | result | pass |
 | cases | 29 |
 | seconds | 15 |
-| revision | 5498527+ |
+| revision | 3acd710+ |
 
 ### Progress
 
@@ -24,49 +24,49 @@ This is the setup repo for [Herdr](https://herdr.dev). The status block is the c
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
 | 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-8576 |
-| 3s | run | container | ok | herdr-test-8576 |
-| 5s | check | arch | ok |  |
-| 5s | check | events | ok |  |
-| 5s | check | skill | ok |  |
-| 5s | check | herdr-skill | ok |  |
-| 5s | check | skills-rule | ok |  |
-| 5s | check | checklist | ok |  |
-| 5s | check | bootstrap | ok |  |
-| 5s | check | identity | ok |  |
-| 5s | check | reviewer | ok |  |
-| 5s | check | models | ok |  |
-| 5s | check | setup | ok |  |
-| 5s | check | tk | ok |  |
-| 5s | check | pills | ok |  |
-| 5s | check | status | ok |  |
-| 5s | check | fresh | ok |  |
-| 5s | check | idempotent | ok |  |
-| 5s | check | drift | ok |  |
-| 5s | check | linux | ok |  |
-| 5s | check | windows | ok |  |
-| 5s | check | unknown-os | ok |  |
-| 5s | check | unwritable | ok |  |
-| 5s | check | installer | ok |  |
-| 5s | check | stamp | ok |  |
-| 12s | check | live-apply | ok |  |
-| 12s | check | live-config | ok |  |
-| 14s | check | live-agents | ok |  |
-| 14s | check | live-core | ok |  |
-| 14s | check | live-worktree | ok |  |
-| 14s | check | live-stop | ok |  |
+| 2s | run | container | start | herdr-test-10019 |
+| 3s | run | container | ok | herdr-test-10019 |
+| 6s | check | arch | ok |  |
+| 6s | check | events | ok |  |
+| 6s | check | skill | ok |  |
+| 6s | check | herdr-skill | ok |  |
+| 6s | check | skills-rule | ok |  |
+| 6s | check | checklist | ok |  |
+| 6s | check | bootstrap | ok |  |
+| 6s | check | identity | ok |  |
+| 6s | check | reviewer | ok |  |
+| 6s | check | models | ok |  |
+| 6s | check | setup | ok |  |
+| 6s | check | tk | ok |  |
+| 6s | check | pills | ok |  |
+| 6s | check | status | ok |  |
+| 6s | check | fresh | ok |  |
+| 6s | check | idempotent | ok |  |
+| 6s | check | drift | ok |  |
+| 6s | check | linux | ok |  |
+| 6s | check | windows | ok |  |
+| 6s | check | unknown-os | ok |  |
+| 6s | check | unwritable | ok |  |
+| 6s | check | installer | ok |  |
+| 6s | check | stamp | ok |  |
+| 15s | check | live-apply | ok |  |
+| 15s | check | live-config | ok |  |
+| 15s | check | live-agents | ok |  |
+| 15s | check | live-core | ok |  |
+| 15s | check | live-worktree | ok |  |
+| 15s | check | live-stop | ok |  |
 | 15s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-8576
-memory 145.6 MiB / 1024.0 MiB
-cpu_usec 1244335
+container herdr-test-10019
+memory 146.8 MiB / 1024.0 MiB
+cpu_usec 1378374
 pids 2
-net_rx 29964438
-net_tx 245795
-block_read 120717312
+net_rx 29963723
+net_tx 255048
+block_read 122019840
 block_write 0
 ```
 
@@ -87,6 +87,7 @@ Local Volumes  0      0       0 B      0 B (0%)
 | model | where | skill calling |
 | --- | --- | --- |
 | qwen2.5-coder-3b-instruct-q8_0 | local | D |
+| grok-4.7 | cloud | A |
 <!-- status:end -->
 
 ## Set up

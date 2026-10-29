@@ -7,5 +7,6 @@ Grades for models that have run a Herdr agent. `where` is `local` or `cloud`. A 
 | model | where | skill calling |
 | --- | --- | --- |
 | qwen2.5-coder-3b-instruct-q8_0 | local | D |
+| grok-4.7 | cloud | A |
 
-That local run returned the skill text and did not start the skill's first step. No cloud model has a grade yet. A cloud model uses this same table with `where` set to `cloud`.
+The local run returned a restatement of the skill and did not start the skill's first step. The cloud run was Grok Build inside a named Herdr session, kind `grok`, prompt exactly `/bootstrap`. It started that step and asked the 10. A cloud model uses this same table with `where` set to `cloud`.

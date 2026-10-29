@@ -669,6 +669,7 @@ try {
   const models = `${ROOT}/agents/models.md`;
   if (!await exists(models)) fail("models: missing agents/models.md");
   if (!has(models, "qwen2.5-coder-3b-instruct-q8_0 | local | D")) fail("models: local skill calling grade is not D");
+  if (!has(models, "grok-4.7 | cloud | A")) fail("models: cloud skill calling grade is not A");
   if (!has(models, "skill calling")) fail("models: skill calling column missing");
   if (!has(models, "where` set to `cloud")) fail("models: cloud uses a different table");
   ok("models");
