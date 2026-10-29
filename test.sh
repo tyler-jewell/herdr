@@ -3,6 +3,9 @@
 # Default arch is macos: run the checks in an Apple container on this Mac.
 # Inside that container the checks print one line each. The macos report is four
 # sections, including when the test fails.
+# As each step finishes, a Server-Sent Event is appended to test.events.sse
+# (text/event-stream records: id, event, data, blank line). That file is the
+# chronological stream. It is not part of the four-section report.
 set -u
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
@@ -25,6 +28,10 @@ if [ "${HERDR_SANDBOX:-}" != 1 ]; then
   SYS_LOG="$WORK/system.log"
   INFRA="$WORK/infra.log"
   RUN_LOG="$WORK/run.log"
+  EVENTS="$ROOT/test.events.sse"
+  : >"$EVENTS"
+  printf '0\n' >"$WORK/event.seq"
+  printf '0\n' >"$WORK/log.off"
   exit_code=1
   done_report=0
   started=0
@@ -57,8 +64,10 @@ if [ "${HERDR_SANDBOX:-}" != 1 ]; then
     printf '== result ==\n'
     if [ "$exit_code" -eq 0 ]; then
       printf 'pass\n'
+      emit_event result suite pass ""
     else
       printf 'fail %s\n' "$exit_code"
+      emit_event result suite fail "$exit_code"
     fi
   }
 
@@ -118,6 +127,78 @@ EOF
     fi
   }
 
+  # One SSE record. kind is run, check, or result. detail may be empty.
+  emit_event() {
+    python3 - "$EVENTS" "$WORK/event.seq" "$start_s" "$1" "$2" "$3" "$4" <<'PY'
+import json, sys, time
+path, seq_path, start_s, kind, name, status, detail = sys.argv[1:8]
+try:
+    seq = int(open(seq_path, encoding="utf-8").read().strip() or "0")
+except FileNotFoundError:
+    seq = 0
+seq += 1
+open(seq_path, "w", encoding="utf-8").write(str(seq) + "\n")
+payload = {
+    "seq": seq,
+    "elapsed_s": int(time.time()) - int(start_s),
+    "name": name,
+    "status": status,
+}
+if detail:
+    payload["detail"] = detail
+with open(path, "a", encoding="utf-8") as handle:
+    handle.write("id: %s\nevent: %s\ndata: %s\n\n" % (seq, kind, json.dumps(payload, separators=(",", ":"))))
+    handle.flush()
+PY
+  }
+
+  # Turn new "ok name" and "FAIL reason" lines into check events, in order.
+  drain_checks() {
+    [ -f "$TEST_LOG" ] || return 0
+    python3 - "$TEST_LOG" "$EVENTS" "$WORK/event.seq" "$WORK/log.off" "$start_s" <<'PY'
+import json, sys, time
+log_path, events_path, seq_path, off_path, start_s = sys.argv[1:6]
+try:
+    off = int(open(off_path, encoding="utf-8").read().strip() or "0")
+except FileNotFoundError:
+    off = 0
+raw = open(log_path, "rb").read()
+chunk = raw[off:]
+text = chunk.decode("utf-8", "replace")
+if not text:
+    raise SystemExit(0)
+lines = text.split("\n")
+if text.endswith("\n"):
+    open(off_path, "w", encoding="utf-8").write(str(len(raw)) + "\n")
+else:
+    partial = lines.pop()
+    open(off_path, "w", encoding="utf-8").write(str(len(raw) - len(partial.encode())) + "\n")
+try:
+    seq = int(open(seq_path, encoding="utf-8").read().strip() or "0")
+except FileNotFoundError:
+    seq = 0
+elapsed = int(time.time()) - int(start_s)
+with open(events_path, "a", encoding="utf-8") as handle:
+    for line in lines:
+        line = line.replace("\r", "").strip()
+        if line.startswith("ok ") and line != "ok":
+            name, status, detail = line[3:], "ok", ""
+        elif line.startswith("FAIL "):
+            detail = line[5:]
+            name = detail.split(":", 1)[0]
+            status = "fail"
+        else:
+            continue
+        seq += 1
+        payload = {"seq": seq, "elapsed_s": elapsed, "name": name, "status": status}
+        if detail:
+            payload["detail"] = detail
+        handle.write("id: %s\nevent: check\ndata: %s\n\n" % (seq, json.dumps(payload, separators=(",", ":"))))
+    handle.flush()
+open(seq_path, "w", encoding="utf-8").write(str(seq) + "\n")
+PY
+  }
+
   cleanup() {
     if [ "$started" -eq 1 ] && command -v container >/dev/null 2>&1; then
       container stop "$NAME" >>"$INFRA" 2>&1 || true
@@ -133,10 +214,12 @@ EOF
     macos) ;;
     *)
       printf 'FAIL arch: %s is not supported\n' "$arch" >"$TEST_LOG"
+      drain_checks
       exit_code=1
       exit 1
       ;;
   esac
+  emit_event run arch ok "$arch"
 
   if ! command -v container >/dev/null 2>&1; then
     printf 'FAIL container: Apple container CLI is not on PATH\n' >"$TEST_LOG"
@@ -145,6 +228,7 @@ EOF
     exit 1
   fi
 
+  emit_event run container-system start ""
   container system start >>"$INFRA" 2>&1 || true
 
   capture_system() {
@@ -159,14 +243,18 @@ EOF
   # Image build is root only so the runtime user is not. Runtime is a separate
   # machine: non-root, no capabilities, read-only root, no host mounts.
   # --quiet hangs this container CLI. Plain progress stays in the build log.
+  emit_event run image-build start "$IMAGE"
   if ! container build --progress plain --tag "$IMAGE" --file "$ROOT/sandbox/Containerfile" "$ROOT/sandbox" >"$WORK/build.log" 2>&1; then
     printf 'FAIL container: could not build the sandbox image\n' >"$TEST_LOG"
     strip_noise <"$WORK/build.log" | tail -n 8 >>"$TEST_LOG"
     capture_system
+    drain_checks
     exit_code=1
     exit 1
   fi
+  emit_event run image-build ok "$IMAGE"
 
+  emit_event run container start "$NAME"
   if ! container run -d \
     --name "$NAME" \
     --progress none \
@@ -187,6 +275,7 @@ EOF
     exit 1
   fi
   started=1
+  emit_event run container ok "$NAME"
 
   # Send only the setup files in. Nothing on the host is mounted.
   # skills/ is part of the assertion. Omit it when absent so the test can fail the check.
@@ -201,17 +290,24 @@ EOF
       --env HERDR_SANDBOX=1 \
       --env PATH=/home/tester/.local/bin:/usr/local/bin:/usr/bin:/bin \
       "$NAME" \
-      /bin/sh -c 'mkdir -p "$HOME/src" && tar -C "$HOME/src" -xf - && exec /bin/sh "$HOME/src/test.sh"' \
+      /bin/sh -c 'mkdir -p "$HOME/src" && tar -C "$HOME/src" -xf - && exec stdbuf -oL /bin/sh "$HOME/src/test.sh"' \
       >"$TEST_LOG" 2>&1 &
   test_pid=$!
+  last_stats=0
   while kill -0 "$test_pid" 2>/dev/null; do
-    container stats "$NAME" --format json --no-stream >"$WORK/stats.json" 2>>"$INFRA" || true
-    sleep 2
+    drain_checks
+    now=$(date +%s)
+    if [ $((now - last_stats)) -ge 2 ]; then
+      container stats "$NAME" --format json --no-stream >"$WORK/stats.json" 2>>"$INFRA" || true
+      last_stats=$now
+    fi
+    sleep 0.2
   done &
   stats_pid=$!
   wait "$test_pid"
   exit_code=$?
   wait "$stats_pid" 2>/dev/null || true
+  drain_checks
   capture_system
 
   if [ -s "$WORK/stats.json" ] && command -v python3 >/dev/null 2>&1; then
@@ -252,6 +348,14 @@ PY
   fi
 
   # A passing test.sh ends with a line that is exactly "ok".
+  # The SSE stream has one check event per ok/FAIL line, in that order.
+  log_cases=$(strip_noise <"$TEST_LOG" | awk '/^ok / || /^FAIL / { n++ } END { print n + 0 }')
+  stream_cases=$(awk '/^event: check$/ { n++ } END { print n + 0 }' "$EVENTS")
+  if [ "$log_cases" -ne "$stream_cases" ]; then
+    printf 'FAIL events: %s check events, %s log cases\n' "$stream_cases" "$log_cases" >>"$TEST_LOG"
+    drain_checks
+    exit_code=1
+  fi
   if [ "$exit_code" -ne 0 ]; then
     exit "$exit_code"
   fi
@@ -313,6 +417,11 @@ set -e
 grep -q 'arch=${1:-macos}' "$ROOT/test.sh" || fail "arch: default is not macos"
 grep -q 'container system start' "$ROOT/test.sh" || fail "arch: macos does not use Apple container"
 printf 'ok arch\n'
+
+# The host appends one SSE check event per ok/FAIL line to test.events.sse.
+grep -q 'test.events.sse' "$ROOT/test.sh" || fail "events: script does not name the SSE stream"
+grep -q 'event: check' "$ROOT/test.sh" || fail "events: script does not emit check events"
+printf 'ok events\n'
 
 # Official skill from apple/container. Required before this repo's container workflow.
 skill="$ROOT/skills/container/SKILL.md"
