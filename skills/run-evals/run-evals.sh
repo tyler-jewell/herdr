@@ -26,7 +26,16 @@ PREFLIGHT_ONLY=0
 IMAGE="herdr-sandbox"
 
 usage() {
-  sed -n '6,15p' "$0" | sed 's/^# \{0,1\}//'
+  cat <<'EOF'
+Usage:
+  run-evals.sh                 # smart: one full wave at the detected safe concurrency
+  run-evals.sh --parallel N    # N evals (1..100), in waves of the safe concurrency
+  run-evals.sh --concurrency C # cap simultaneous workers
+  run-evals.sh --dry-run       # show the plan, run nothing
+  run-evals.sh --preflight     # checks only, exits nonzero if one fails
+  run-evals.sh --json          # machine-readable summary
+  run-evals.sh --max M         # cap the detected safe concurrency (same as RUN_EVALS_MAX)
+EOF
 }
 
 while [ $# -gt 0 ]; do
