@@ -365,6 +365,18 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     return parts.join("\n");
   }
 
+  function valueLines(data: Catalog): string {
+    const rows = ["Agent-scored runs only. A core check is not value.", "", "| where | model | eval | grade |", "| --- | --- | --- | --- |"];
+    for (const domain of data.domains) {
+      for (const item of domain.evals) {
+        for (const score of item.scores) {
+          rows.push(`| ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`);
+        }
+      }
+    }
+    return rows.length > 4 ? rows.join("\n") : "No scored agent run.";
+  }
+
   function gradeTable(): string {
     try {
       const rows = text(`${ROOT}/agents/models.md`).split("\n").filter((line) => line.startsWith("|"));
@@ -386,6 +398,10 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       `| seconds | ${seconds} |`,
       `| revision | ${pillRev} |`,
       `| setup | ${text(`${ROOT}/apply`).match(/^SETUP_VERSION=(.*)$/m)?.[1] ?? "unknown"} |`,
+      "",
+      "### Value",
+      "",
+      valueLines(catalog()),
       "",
       "### Harness",
       "",
@@ -910,6 +926,18 @@ try {
   if (!has(`${ROOT}/README.md`, "<!-- status:end -->")) fail("status: README status block is open");
   if (!has(`${ROOT}/AGENTS.md`, "Read `README.md` for the current status")) fail("status: AGENTS.md does not send agents to README");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "rewrites the status block in `README.md`")) fail("status: CONTRIBUTING.md does not keep the status block");
+  const readme = text(`${ROOT}/README.md`);
+  const value = readme.split("### Value")[1]?.split("### Harness")[0] ?? "";
+  if (!value.includes("Agent-scored runs only")) fail("status: value list is missing");
+  if (value.includes("idempotent") || value.includes("live-apply")) fail("status: value list includes a core check");
+  for (const domain of results.domains) {
+    for (const item of domain.evals) {
+      for (const score of item.scores) {
+        const row = `| ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`;
+        if (!value.includes(row)) fail(`status: value list missing ${domain.id}/${item.id} ${score.model}`);
+      }
+    }
+  }
   ok("status");
 
   let code = await runApply(`${tmp}/fresh`, "Darwin", `${tmp}/fresh.json`);

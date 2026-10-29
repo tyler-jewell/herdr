@@ -42,7 +42,7 @@ flowchart LR
   apply --> win
 ```
 
-`./test.ts` rewrites the block and the pills below. Do not edit them by hand.
+`./test.ts` rewrites the block and the pills below. The value list in that block is only scored agent runs. Do not edit them by hand.
 
 <!-- status:start -->
 ## Status
@@ -51,9 +51,18 @@ flowchart LR
 | --- | --- |
 | result | pass |
 | cases | 32 |
-| seconds | 17 |
-| revision | aa32ba5+ |
+| seconds | 12 |
+| revision | d6efee4+ |
 | setup | 1 |
+
+### Value
+
+Agent-scored runs only. A core check is not value.
+
+| where | model | eval | grade |
+| --- | --- | --- | --- |
+| local | qwen2.5-coder-3b-instruct-q8_0 | skill-calling/bootstrap | D |
+| cloud | grok-4.7 | skill-calling/bootstrap | A |
 
 ### Harness
 
@@ -67,10 +76,10 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | --- | --- | --- | --- | --- |
 | 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
-| 1s | run | image-build | start | herdr-sandbox |
+| 0s | run | image-build | start | herdr-sandbox |
 | 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-17423 |
-| 3s | run | container | ok | herdr-test-17423 |
+| 2s | run | container | start | herdr-test-17799 |
+| 2s | run | container | ok | herdr-test-17799 |
 | 5s | check | arch | ok |  |
 | 5s | check | events | ok |  |
 | 5s | check | skill | ok |  |
@@ -97,24 +106,24 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 5s | check | unwritable | ok |  |
 | 5s | check | installer | ok |  |
 | 5s | check | stamp | ok |  |
-| 17s | check | live-apply | ok |  |
-| 17s | check | live-config | ok |  |
-| 17s | check | live-agents | ok |  |
-| 17s | check | live-core | ok |  |
-| 17s | check | live-worktree | ok |  |
-| 17s | check | live-stop | ok |  |
-| 17s | result | suite | pass |  |
+| 12s | check | live-apply | ok |  |
+| 12s | check | live-config | ok |  |
+| 12s | check | live-agents | ok |  |
+| 12s | check | live-core | ok |  |
+| 12s | check | live-worktree | ok |  |
+| 12s | check | live-stop | ok |  |
+| 12s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-17423
-memory 145.3 MiB / 1024.0 MiB
-cpu_usec 1262121
+container herdr-test-17799
+memory 145.4 MiB / 1024.0 MiB
+cpu_usec 1269013
 pids 2
-net_rx 29963646
-net_tx 278648
-block_read 120610816
+net_rx 29962568
+net_tx 190236
+block_read 120446976
 block_write 0
 ```
 
