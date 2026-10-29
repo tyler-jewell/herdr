@@ -50,6 +50,12 @@ flowchart LR
 
 Rendered by `./evals.ts macos --agent` from `evals.jsonl`: the latest run per setup, eval, and model. Do not edit.
 
-No scored runs yet.
+| setup | eval | model | grade | domain | outcome | seconds | turns | tool calls | tokens in | tokens out | cache read | judge | judge seconds | judge tokens |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | one-question | Qwen3.6-35B-A3B-Q4_K_M | B | agent-orchestration | completed | 98 | 5 | 7 | 10396 | 1843 | 31753 | gpt-oss-20b-MXFP4 | 92 | 25487 |
+
+| model | context-gathering | tool-use | shell-use | question-asking |
+| --- | --- | --- | --- | --- |
+| Qwen3.6-35B-A3B-Q4_K_M | B | A | A | A |
 
 <!-- results:end -->
