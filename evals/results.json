@@ -1,22 +1,27 @@
 {
   "overview": "One public script applies this Herdr config on a computer, then hands an agent the required /bootstrap prompt.",
-  "domains": [
+  "versions": [
     {
-      "id": "skill-calling",
-      "evals": [
+      "setup": "1",
+      "domains": [
         {
-          "id": "bootstrap",
-          "prompt": "/bootstrap",
-          "scores": [
+          "id": "skill-calling",
+          "evals": [
             {
-              "model": "qwen2.5-coder-3b-instruct-q8_0",
-              "where": "local",
-              "grade": "D"
-            },
-            {
-              "model": "grok-4.7",
-              "where": "cloud",
-              "grade": "A"
+              "id": "bootstrap",
+              "prompt": "/bootstrap",
+              "scores": [
+                {
+                  "model": "qwen2.5-coder-3b-instruct-q8_0",
+                  "where": "local",
+                  "grade": "D"
+                },
+                {
+                  "model": "grok-4.7",
+                  "where": "cloud",
+                  "grade": "A"
+                }
+              ]
             }
           ]
         }

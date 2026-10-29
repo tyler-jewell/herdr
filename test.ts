@@ -285,18 +285,19 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   type Score = { model: string; where: string; grade: string };
   type EvalItem = { id: string; prompt?: string; scores: Score[] };
   type Domain = { id: string; evals: EvalItem[] };
-  type Catalog = { overview?: string; domains: Domain[] };
+  type Version = { setup: string; domains: Domain[] };
+  type Catalog = { overview?: string; versions: Version[] };
 
   function catalog(): Catalog {
     return JSON.parse(text(`${ROOT}/evals/results.json`)) as Catalog;
   }
 
-  function gradeGrid(data: Catalog): { columns: string[]; models: string[]; where: Map<string, string>; cell: Map<string, string> } {
+  function gradeGrid(domains: Domain[]): { columns: string[]; models: string[]; where: Map<string, string>; cell: Map<string, string> } {
     const columns: string[] = [];
     const models: string[] = [];
     const where = new Map<string, string>();
     const cell = new Map<string, string>();
-    for (const domain of data.domains) {
+    for (const domain of domains) {
       for (const item of domain.evals) {
         const column = `${domain.id}/${item.id}`;
         columns.push(column);
@@ -311,23 +312,26 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   }
 
   function renderModels(data: Catalog): string {
-    const grid = gradeGrid(data);
-    const head = ["model", "where", ...grid.columns];
     const lines = [
       "# Models",
       "",
       "Rendered from `evals/results.json` by `./test.ts`. Do not edit this table by hand.",
       "",
-      "The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.",
+      "One matrix per setup version. Grades stay on the version that was scored. The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.",
       "",
-      `| ${head.join(" | ")} |`,
-      `| ${head.map(() => "---").join(" | ")} |`,
     ];
-    for (const model of grid.models) {
-      const grades = grid.columns.map((column) => grid.cell.get(`${model}|${column}`) ?? "");
-      lines.push(`| ${model} | ${grid.where.get(model) ?? ""} | ${grades.join(" | ")} |`);
+    for (const version of data.versions) {
+      const grid = gradeGrid(version.domains);
+      const head = ["model", "where", ...grid.columns];
+      lines.push(`## setup ${version.setup}`, "");
+      lines.push(`| ${head.join(" | ")} |`, `| ${head.map(() => "---").join(" | ")} |`);
+      for (const model of grid.models) {
+        const grades = grid.columns.map((column) => grid.cell.get(`${model}|${column}`) ?? "");
+        lines.push(`| ${model} | ${grid.where.get(model) ?? ""} | ${grades.join(" | ")} |`);
+      }
+      if (!grid.models.length) lines.push("| | | |");
+      lines.push("");
     }
-    lines.push("");
     return lines.join("\n");
   }
 
@@ -336,7 +340,10 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   }
 
   function heatmap(data: Catalog): string {
-    const grid = gradeGrid(data);
+    const grid = gradeGrid(data.versions.flatMap((version) => version.domains.map((domain) => ({
+      id: domain.id,
+      evals: domain.evals.map((item) => ({ ...item, id: `${version.setup}/${item.id}` })),
+    }))));
     const fill: Record<string, string> = { A: "#1a7f37", B: "#4c9a2a", C: "#9a6700", D: "#bc4c00", F: "#cf222e" };
     const labelW = 300;
     const cellW = 150;
@@ -366,15 +373,38 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   }
 
   function valueLines(data: Catalog): string {
-    const rows = ["Agent-scored runs only. A core check is not value.", "", "| where | model | eval | grade |", "| --- | --- | --- | --- |"];
-    for (const domain of data.domains) {
-      for (const item of domain.evals) {
-        for (const score of item.scores) {
-          rows.push(`| ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`);
+    const rows = [
+      "Agent-scored runs only. A core check is not value. Each setup version keeps its own matrix.",
+      "",
+      "| setup | models | evals | scored |",
+      "| --- | --- | --- | --- |",
+    ];
+    for (const version of data.versions) {
+      const models = new Set<string>();
+      let evals = 0;
+      let scored = 0;
+      for (const domain of version.domains) {
+        for (const item of domain.evals) {
+          evals += 1;
+          for (const score of item.scores) {
+            models.add(score.model);
+            scored += 1;
+          }
+        }
+      }
+      rows.push(`| ${version.setup} | ${models.size} | ${evals} | ${scored} |`);
+    }
+    rows.push("", "| setup | where | model | eval | grade |", "| --- | --- | --- | --- | --- |");
+    for (const version of data.versions) {
+      for (const domain of version.domains) {
+        for (const item of domain.evals) {
+          for (const score of item.scores) {
+            rows.push(`| ${version.setup} | ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`);
+          }
         }
       }
     }
-    return rows.length > 4 ? rows.join("\n") : "No scored agent run.";
+    return rows.join("\n");
   }
 
   function gradeTable(): string {
@@ -855,12 +885,16 @@ try {
 
   const results = JSON.parse(text(`${ROOT}/evals/results.json`)) as {
     overview?: string;
-    domains: { id: string; evals: { id: string; scores: { model: string; where: string; grade: string }[] }[] }[];
+    versions: { setup: string; domains: { id: string; evals: { id: string; scores: { model: string; where: string; grade: string }[] }[] }[] }[];
   };
-  const skillCalling = results.domains.find((domain) => domain.id === "skill-calling");
+  const setupVersion = text(`${ROOT}/apply`).match(/^SETUP_VERSION=(.*)$/m)?.[1] ?? "";
+  if (!results.overview) fail("evals: overview missing");
+  if (!results.versions?.length) fail("evals: no version matrix");
+  if (!results.versions.some((version) => version.setup === setupVersion)) fail("evals: current setup version has no matrix");
+  const measured = results.versions.find((version) => version.setup === "1");
+  const skillCalling = measured?.domains.find((domain) => domain.id === "skill-calling");
   const bootstrapEval = skillCalling?.evals.find((item) => item.id === "bootstrap");
   const scored = (model: string) => bootstrapEval?.scores.find((score) => score.model === model);
-  if (!results.overview) fail("evals: overview missing");
   if (!bootstrapEval) fail("evals: skill-calling/bootstrap missing");
   if (scored("qwen2.5-coder-3b-instruct-q8_0")?.where !== "local" || scored("qwen2.5-coder-3b-instruct-q8_0")?.grade !== "D") fail("evals: local bootstrap grade is not D");
   if (scored("grok-4.7")?.where !== "cloud" || scored("grok-4.7")?.grade !== "A") fail("evals: cloud bootstrap grade is not A");
@@ -930,11 +964,14 @@ try {
   const value = readme.split("### Value")[1]?.split("### Harness")[0] ?? "";
   if (!value.includes("Agent-scored runs only")) fail("status: value list is missing");
   if (value.includes("idempotent") || value.includes("live-apply")) fail("status: value list includes a core check");
-  for (const domain of results.domains) {
-    for (const item of domain.evals) {
-      for (const score of item.scores) {
-        const row = `| ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`;
-        if (!value.includes(row)) fail(`status: value list missing ${domain.id}/${item.id} ${score.model}`);
+  if (!value.includes("| setup | models | evals | scored |")) fail("status: value list has no tally");
+  for (const version of results.versions) {
+    for (const domain of version.domains) {
+      for (const item of domain.evals) {
+        for (const score of item.scores) {
+          const row = `| ${version.setup} | ${score.where} | ${score.model} | ${domain.id}/${item.id} | ${score.grade} |`;
+          if (!value.includes(row)) fail(`status: value list missing ${version.setup} ${score.model}`);
+        }
       }
     }
   }

@@ -51,18 +51,22 @@ flowchart LR
 | --- | --- |
 | result | pass |
 | cases | 32 |
-| seconds | 12 |
-| revision | d6efee4+ |
+| seconds | 17 |
+| revision | 9b8f996+ |
 | setup | 1 |
 
 ### Value
 
-Agent-scored runs only. A core check is not value.
+Agent-scored runs only. A core check is not value. Each setup version keeps its own matrix.
 
-| where | model | eval | grade |
+| setup | models | evals | scored |
 | --- | --- | --- | --- |
-| local | qwen2.5-coder-3b-instruct-q8_0 | skill-calling/bootstrap | D |
-| cloud | grok-4.7 | skill-calling/bootstrap | A |
+| 1 | 2 | 1 | 2 |
+
+| setup | where | model | eval | grade |
+| --- | --- | --- | --- | --- |
+| 1 | local | qwen2.5-coder-3b-instruct-q8_0 | skill-calling/bootstrap | D |
+| 1 | cloud | grok-4.7 | skill-calling/bootstrap | A |
 
 ### Harness
 
@@ -78,8 +82,8 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
 | 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-17799 |
-| 2s | run | container | ok | herdr-test-17799 |
+| 2s | run | container | start | herdr-test-18282 |
+| 3s | run | container | ok | herdr-test-18282 |
 | 5s | check | arch | ok |  |
 | 5s | check | events | ok |  |
 | 5s | check | skill | ok |  |
@@ -106,24 +110,24 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 5s | check | unwritable | ok |  |
 | 5s | check | installer | ok |  |
 | 5s | check | stamp | ok |  |
-| 12s | check | live-apply | ok |  |
-| 12s | check | live-config | ok |  |
-| 12s | check | live-agents | ok |  |
-| 12s | check | live-core | ok |  |
-| 12s | check | live-worktree | ok |  |
-| 12s | check | live-stop | ok |  |
-| 12s | result | suite | pass |  |
+| 17s | check | live-apply | ok |  |
+| 17s | check | live-config | ok |  |
+| 17s | check | live-agents | ok |  |
+| 17s | check | live-core | ok |  |
+| 17s | check | live-worktree | ok |  |
+| 17s | check | live-stop | ok |  |
+| 17s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-17799
-memory 145.4 MiB / 1024.0 MiB
-cpu_usec 1269013
+container herdr-test-18282
+memory 145.7 MiB / 1024.0 MiB
+cpu_usec 1366459
 pids 2
-net_rx 29962568
-net_tx 190236
-block_read 120446976
+net_rx 29964286
+net_tx 300606
+block_read 120971264
 block_write 0
 ```
 
