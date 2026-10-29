@@ -3,6 +3,26 @@ name: managing-policies
 description: Write, apply, inspect, update, and debug Turnkey policies with tk, including consensus that requires a human approver and policy evaluations for a denied activity. Use to grant or restrict what a tagged user may do or to explain a denial; not for choosing an approval model, which the bootstrap workflow covers.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/managing-policies/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Which policy operation is in scope? | Turnkey `tk` policy | Create or update the policy set for the selected agent route, secret exports, signing keys, or revoker.; Inspect a denied or pending activity with `tk policy evaluations --activity-id` without changing policies.; None. All required policies already exist and match character for character. | Create or update the policy set for the selected agent route, secret exports, signing keys, or revoker. |
+| Q2: How should new policies be applied by `admin`? | Turnkey `tk` policy | Individually with `tk policy create`, skipping any policy whose stored effect, condition, and consensus already match.; In one batch with `tk policy create-batch --input-file` from a JSON policy list outside the repository.; Update an existing policy ID in place with `tk policy update --input-json`. | Individually with `tk policy create`, skipping any policy whose stored effect, condition, and consensus already match. |
+| Q3: How is the policy change verified before handoff? | Turnkey `tk` policy | Run one allowed operation and one operation that must return HTTP 403 (`unauthorized`) using the non-root profile.; Read `tk policy get` and `tk policy evaluations` only, because no non-root runtime credential exists yet. | Run one allowed operation and one operation that must return HTTP 403 (`unauthorized`) using the non-root profile. |
+
+---
+
+
 # Managing policies
 
 Result: a policy set that grants the intended access and nothing more, tested

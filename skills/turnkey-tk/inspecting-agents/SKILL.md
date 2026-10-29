@@ -3,6 +3,26 @@ name: inspecting-agents
 description: Answer operational questions about an organization's Turnkey agents with tk list filters, explicit pagination, and jq: what is pending and for how long, who voted, which users carry a tag, which keys each agent holds and when they expire, which secrets carry which properties, which policies mention a tag or user, who minted a key. Use for audits and "what is the state of X" questions; not for changing anything.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/inspecting-agents/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Is a read-only audit of Turnkey agents, keys, secrets, policies, or activities requested? | Turnkey `tk` policy | Yes. Run read-only `list`, `get`, and `evaluations` commands and cite each command, page count, and field.; No. Do not run an inspection pass. | Yes. Run read-only `list`, `get`, and `evaluations` commands and cite each command, page count, and field. |
+| Q2: Which credential runs the inspection queries? | Turnkey `tk` policy | The `admin` profile on the operator machine.; A dedicated read-only or non-root profile in the organization.; The `TURNKEY_ORGANIZATION_ID`, `TURNKEY_API_PUBLIC_KEY`, and `TURNKEY_API_PRIVATE_KEY` environment bundle. | The `admin` profile on the operator machine. |
+| Q3: Which API-key inventory pass should run? | Turnkey `tk` policy | All keys per tagged user via `api-key list --user-id`, plus organization-wide `--long-lived` and `--expiring-within 48h`.; Only keys for the specific user IDs named in the request.; Skip API-key listing and inspect only activities, policies, or secret metadata. | All keys per tagged user via `api-key list --user-id`, plus organization-wide `--long-lived` and `--expiring-within 48h`. |
+
+---
+
+
 # Inspecting agents
 
 Result: a read-only report that answers each question with the command that

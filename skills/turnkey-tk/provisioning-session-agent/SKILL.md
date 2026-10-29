@@ -3,6 +3,26 @@ name: provisioning-session-agent
 description: Provision or renew a non-root Turnkey agent's expiring API keys through a separate provisioner. Use when setting up session credentials or recovering an expired session; not for wallet provisioning.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/provisioning-session-agent/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Which session-credential operation is in scope? | Turnkey `tk` policy | First provisioning: create the session agent (with discarded `--anchor-key`), the `provisioner` user, the three provisioner policies, and run one renewal.; Renewal or recovery only: run `session status`, `session request`, `session provision`, and `session activate` without recreating users or policies.; Not used. The agent uses a long-lived key (`provisioning-agent-identity`) or no agent credential is needed. | First provisioning: create the session agent (with discarded `--anchor-key`), the `provisioner` user, the three provisioner policies, and run one renewal. |
+| Q2: What session lifetime and warning window govern renewal? | Turnkey `tk` policy | Default `7d` lifetime (`--expires-in 7d`) and `48h` warning window (`--warn-before 48h`), within the policy's `expiration_seconds` cap.; Short-lived `24h` lifetime (`--expires-in 24h`) and `6h` warning window (`--warn-before 6h`), within the policy's `expiration_seconds` cap. | Default `7d` lifetime (`--expires-in 7d`) and `48h` warning window (`--warn-before 48h`), within the policy's `expiration_seconds` cap. |
+| Q3: Does `session provision` complete unilaterally or require human approval? | Turnkey `tk` policy | Unilaterally under the `provisioner` profile within the policy lifetime cap.; With human approval from a `human-approver` user before `session provision` is rerun and `session activate` switches the key. | Unilaterally under the `provisioner` profile within the policy lifetime cap. |
+
+---
+
+
 # Provisioning a session agent
 
 Result: a tagged non-root agent on expiring API keys, a tagged provisioner that

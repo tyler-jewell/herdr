@@ -3,6 +3,26 @@ name: managing-identities
 description: Create, tag, rotate, and revoke Turnkey users and API keys with tk, and manage the local profiles that hold their credentials. Use to add a non-root user, attach a tag, register or delete an API key, switch a profile to a new key, or remove a user; not for expiring session keys, which have their own workflow.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/managing-identities/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Which identity lifecycle operation is needed? | Turnkey `tk` policy | Create a non-root user, attach its role tag, and register the public key generated on its host.; Rotate an existing user's API key by generating a replacement on its host, registering it, verifying `whoami`, and deleting the old key.; Revoke a compromised or retired non-root user or API key.; None. Existing users and profiles already match the system. | Create a non-root user, attach its role tag, and register the public key generated on its host. |
+| Q2: Where is the user's private key generated and stored? | Turnkey `tk` policy | On the target host under `$HOME/.config/turnkey` via `tk profile create` or `tk api-key generate`, never in git.; In a CI secret store for the `TURNKEY_*` environment bundle, with no profile file on disk.; Not applicable because this run only revokes an existing key or user. | On the target host under `$HOME/.config/turnkey` via `tk profile create` or `tk api-key generate`, never in git. |
+| Q3: How is a retired or compromised non-root identity cut off? | Turnkey `tk` policy | Delete only the affected API key IDs with `tk api-key delete` after replacement or via `revoking-agent-keys`.; Delete the entire non-root user with `tk user delete` after confirming `user get` shows a non-root user.; Not applicable because no revocation is requested. | Delete only the affected API key IDs with `tk api-key delete` after replacement or via `revoking-agent-keys`. |
+
+---
+
+
 # Managing identities
 
 Users, tags, registered API keys, and the local profiles that hold private

@@ -3,6 +3,26 @@ name: bootstrapping-organization
 description: Prepare an existing Turnkey organization for agents with tk: install the binary, save and verify a root profile, create the agent, provisioner, and human-approver tags, and pick an approval model. Use once per organization before provisioning any agent; not for creating the organization itself or for adding a later agent.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/bootstrapping-organization/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Is the Turnkey organization already bootstrapped with the `admin` root profile and disjoint role tags? | Turnkey `tk` policy | No. Run `bootstrapping-organization` now.; Yes. `tk --profile admin whoami` already succeeds and the tags exist; skip bootstrap.; Not used. Turnkey is not in scope. | No. Run `bootstrapping-organization` now. |
+| Q2: How is the `admin` root credential created on the operator machine? | Turnkey `tk` policy | Generate a fresh P-256 key with `tk profile create --profile-name admin` and register its public key in the dashboard.; Use an existing P-256 key file outside the repository with `--api-key-file`.; Already registered and verified with `tk --profile admin whoami`. | Generate a fresh P-256 key with `tk profile create --profile-name admin` and register its public key in the dashboard. |
+| Q3: Which user carries the `human-approver` tag? | Turnkey `tk` policy | The acting root user returned by `whoami`.; A separate existing user in the organization, identified by user ID.; None. Every policy in this organization is unilateral. | The acting root user returned by `whoami`. |
+
+---
+
+
 # Bootstrapping an organization
 
 Result: a verified root profile on the operator's machine, three disjoint

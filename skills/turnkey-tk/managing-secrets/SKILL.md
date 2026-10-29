@@ -3,6 +3,26 @@ name: managing-secrets
 description: Grant agents Turnkey Secrets exports and import, export, rotate, and inject secrets with tk, including the export policies per approval column, scope isolation between agents, secret env as a process's startup environment, and finishing an approval-gated export. Use to let an agent read a value, store one, give a process its environment, complete a pending export, or replace a value; not for wallet or private-key export.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/managing-secrets/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Are Turnkey Secrets used to store or inject secrets for this workload? | Turnkey `tk` policy | Yes. Import, export, or inject secrets via `tk secret` with static `consensus` properties.; No. No secrets are stored or exported in this workflow. | Yes. Import, export, or inject secrets via `tk secret` with static `consensus` properties. |
+| Q2: How are secret values delivered to the consuming process without entering transcripts or git? | Turnkey `tk` policy | Injected at process startup with `tk secret env --name-prefix service/ --property consensus=unilateral`.; Written on demand to a mode-`0600` file outside the repository with `tk secret export --out`.; Imported only in this run from `--from-file` or stdin outside the repository; no export runs now. | Injected at process startup with `tk secret env --name-prefix service/ --property consensus=unilateral`. |
+| Q3: Do multiple agents require isolated secret scopes within the organization? | Turnkey `tk` policy | No. One shared `agent` tag and `service/` prefix cover the workload.; Yes. Bind an immutable `scope` property at import and scope each agent tag's export policy to its own `scope` value. | No. One shared `agent` tag and `service/` prefix cover the workload. |
+
+---
+
+
 # Managing secrets
 
 Result: named, property-tagged secrets that the right agent reads at startup

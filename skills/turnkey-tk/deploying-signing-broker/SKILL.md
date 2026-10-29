@@ -3,6 +3,26 @@ name: deploying-signing-broker
 description: Deploy a credential-free application beside a single-key, GPG-only tk signing broker and a separate session provisioner, each in its own isolation boundary. Use when isolating OpenPGP Git signing so the application receives only a constrained Unix socket and public key, or when rotating the broker's expiring Turnkey credential; not for creating the signing key or choosing policies.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/deploying-signing-broker/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Is a separate OpenPGP signing broker in scope? | Turnkey `tk` policy | Yes. Deploy the application, `broker`, and `provisioner` in separate isolation boundaries.; No. The agent signs directly or no OpenPGP signing is used. | Yes. Deploy the application, `broker`, and `provisioner` in separate isolation boundaries. |
+| Q2: Which boundary separation model hosts the application, broker, and provisioner? | Turnkey `tk` policy | Separate OS users on one host with distinct `HOME` directories.; Separate containers, VMs, or sandboxes sharing only the read-only broker runtime directory.; Not used. No signing broker is deployed. | Separate OS users on one host with distinct `HOME` directories. |
+| Q3: Which Unix socket mode exposes `tk gpg agent serve` to the application? | Turnkey `tk` policy | Mode `0660` with a shared supplemental group on the runtime directory.; Mode `0600` with a shared numeric UID and separate `HOME` and filesystem mounts.; Not used. No signing broker is deployed. | Mode `0660` with a shared supplemental group on the runtime directory. |
+
+---
+
+
 # Deploying a signing broker
 
 Result: three isolation boundaries with separate authority. The application requests

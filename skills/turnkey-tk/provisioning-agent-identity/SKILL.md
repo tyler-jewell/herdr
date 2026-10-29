@@ -3,6 +3,26 @@ name: provisioning-agent-identity
 description: Provision a non-root, tagged Turnkey agent user on one never-expiring API key generated on the agent host, fenced by the credential DENY, and prove the identity from the agent's own credential. Use when an agent needs a permanent credential before any capability is granted; not for secrets, signing, or SSH access, which their own workflows add, and not for expiring session keys (provisioning-session-agent).
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/provisioning-agent-identity/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Should this agent be provisioned with a single never-expiring API key? | Turnkey `tk` policy | Yes. Generate the key on the agent host, register its public half on a user tagged `agent`, and apply `agents-no-credentials`.; No. The agent uses expiring session keys (`provisioning-session-agent`) or no agent credential is needed. | Yes. Generate the key on the agent host, register its public half on a user tagged `agent`, and apply `agents-no-credentials`. |
+| Q2: Does the `agents-no-credentials` DENY policy already exist on the `agent` tag? | Turnkey `tk` policy | Yes. Verify with `tk policy get` that it denies `activity.resource == 'CREDENTIAL'` for `AGENT_TAG`.; No. Create `agents-no-credentials` as `admin` before handing off the agent profile. | Yes. Verify with `tk policy get` that it denies `activity.resource == 'CREDENTIAL'` for `AGENT_TAG`. |
+| Q3: How is the provisioned agent credential verified on the agent host? | Turnkey `tk` policy | Run `tk --profile agent whoami`, confirm `api-key register` returns HTTP 403 (`unauthorized`), and confirm `api-key list` shows one permanent key.; Stop if the agent host cannot run `whoami` or self-registration is not denied. | Run `tk --profile agent whoami`, confirm `api-key register` returns HTTP 403 (`unauthorized`), and confirm `api-key list` shows one permanent key. |
+
+---
+
+
 # Provisioning an agent identity
 
 Result: a tagged non-root user whose single API key never expires, whose

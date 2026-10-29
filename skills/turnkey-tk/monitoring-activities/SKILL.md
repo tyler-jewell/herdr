@@ -3,6 +3,26 @@ name: monitoring-activities
 description: Inspect, approve, reject, and wait for Turnkey activities with tk, and resume a mutation that returned pending, timed out, or reported an unknown outcome. Use when a command says pending, when a human must approve an agent's request, or when an outcome is uncertain; not for writing the policies that require the approval.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Workflow present | `test -f skills/turnkey-tk/monitoring-activities/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Q1: Is there a pending or uncertain Turnkey activity to inspect, approve, reject, or wait on? | Turnkey `tk` policy | Yes. Resume by activity ID after verifying organization, activity type, and intent parameters.; No. Every mutation is unilateral or already completed. | Yes. Resume by activity ID after verifying organization, activity type, and intent parameters. |
+| Q2: How does the human approver cast votes on `ACTIVITY_STATUS_CONSENSUS_NEEDED` activities? | Turnkey `tk` policy | With `tk --profile approver activity approve --id` (or `reject --id`) after checking `activity get`.; In the Turnkey dashboard or mobile app while the submitter waits or reruns. | With `tk --profile approver activity approve --id` (or `reject --id`) after checking `activity get`. |
+| Q3: How is the approved operation completed after consensus is reached? | Turnkey `tk` policy | Rerun the exact `tk secret export`, `tk secret env`, or `tk session provision` command from the same credential and `HOME`.; Run `tk activity wait --id` as the submitter profile for any other mutation type. | Rerun the exact `tk secret export`, `tk secret env`, or `tk session provision` command from the same credential and `HOME`. |
+
+---
+
+
 # Monitoring activities
 
 Every mutation is an activity. This workflow resumes one by id, casts a vote
