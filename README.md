@@ -13,33 +13,12 @@ deno run --allow-run --allow-read --allow-write --allow-net setup.ts
 That runs `./apply` and prints a `/bootstrap` prompt. It does not start an agent or ship the Herdr binary.
 
 ```mermaid
-flowchart TB
-  subgraph core [Herdr core]
-    server[session server]
-    panes[workspaces tabs panes]
-    agents[agent detection]
-  end
-  subgraph wrap [this repo]
-    toml[config.toml]
-    apply[apply copies one file]
-  end
-  toml --> apply --> cfg[machine config.toml]
-  cfg --> server
-  panes --> project[any project]
-  agents --> agent[any agent]
-```
-
-```mermaid
 flowchart LR
-  src[config.toml]
-  apply[apply]
-  mac[macOS]
-  linux[Linux and WSL]
-  win[Windows Git Bash]
-  src --> apply
-  apply --> mac
-  apply --> linux
-  apply --> win
+  src[config.toml] --> apply[./apply]
+  apply --> mac[macOS]
+  apply --> linux[Linux and WSL]
+  apply --> win[Windows Git Bash]
+  mac & linux & win --> core[Herdr core]
 ```
 
 `./evals.ts` rewrites the block and the pills below. The value list in that block is only scored agent runs. Do not edit them by hand.
@@ -49,10 +28,10 @@ flowchart LR
 
 | | |
 | --- | --- |
-| result | pass |
-| cases | 32 |
-| seconds | 13 |
-| revision | 27a5f06+ |
+| result | fail |
+| cases | 0 |
+| seconds | 5 |
+| revision | f2793b1+ |
 | setup | 1 |
 
 ### Value
@@ -78,68 +57,35 @@ One public script applies this Herdr config on a computer, then hands an agent t
 
 | t | kind | name | status | detail |
 | --- | --- | --- | --- | --- |
-| 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
 | 1s | run | image-build | ok | herdr-sandbox |
-| 1s | run | container | start | herdr-test-30089 |
-| 1s | run | container | ok | herdr-test-30089 |
-| 4s | check | arch | ok |  |
-| 4s | check | events | ok |  |
-| 4s | check | skill | ok |  |
-| 4s | check | herdr-skill | ok |  |
-| 4s | check | ponytail | ok |  |
-| 4s | check | repo-protection | ok |  |
-| 4s | check | skills-rule | ok |  |
-| 4s | check | checklist | ok |  |
-| 4s | check | bootstrap | ok |  |
-| 4s | check | identity | ok |  |
-| 4s | check | reviewer | ok |  |
-| 4s | check | models | ok |  |
-| 4s | check | evals | ok |  |
-| 4s | check | setup | ok |  |
-| 4s | check | tk | ok |  |
-| 4s | check | pills | ok |  |
-| 4s | check | status | ok |  |
-| 4s | check | fresh | ok |  |
-| 4s | check | idempotent | ok |  |
-| 4s | check | drift | ok |  |
-| 4s | check | linux | ok |  |
-| 4s | check | windows | ok |  |
-| 4s | check | unknown-os | ok |  |
-| 4s | check | unwritable | ok |  |
-| 4s | check | installer | ok |  |
-| 4s | check | stamp | ok |  |
-| 13s | check | live-apply | ok |  |
-| 13s | check | live-config | ok |  |
-| 13s | check | live-agents | ok |  |
-| 13s | check | live-core | ok |  |
-| 13s | check | live-worktree | ok |  |
-| 13s | check | live-stop | ok |  |
-| 13s | result | suite | pass |  |
+| 1s | run | container | start | herdr-test-42454 |
+| 2s | run | container | ok | herdr-test-42454 |
+| 5s | result | suite | fail | 126 |
 
 ### Memory
 
 ```text
-container herdr-test-30089
-memory 143.3 MiB / 1024.0 MiB
-cpu_usec 1414690
-pids 2
-net_rx 29965172
-net_tx 224567
-block_read 118149120
+container herdr-test-42454
+memory 4.3 MiB / 1024.0 MiB
+cpu_usec 5346
+pids 1
+net_rx 142
+net_tx 602
+block_read 3563520
 block_write 0
 ```
 
 ### System
 
 ```text
-container 1.6.1, arm64, cpus 10, running 2/2, images 10
+container 1.6.1, arm64, cpus 10, running 3/3, images 10
 
 disk:
 TYPE           TOTAL  ACTIVE  SIZE      RECLAIMABLE
-Images         10     2       10.18 GB  9.36 GB (92%)
-Containers     2      2       3.25 GB   0 B (0%)
+Images         10     3       12.43 GB  11.56 GB (93%)
+Containers     3      3       5.14 GB   0 B (0%)
 Local Volumes  0      0       0 B       0 B (0%)
 ```
 
@@ -153,38 +99,36 @@ Local Volumes  0      0       0 B       0 B (0%)
 
 ## Defaults
 
-One file, `config.toml`, on top of Herdr. Anything unset stays core behavior: <https://herdr.dev/docs/>.
+One file, `config.toml`, on top of Herdr. Anything unset stays core behavior (<https://herdr.dev/docs/>):
 
-- No onboarding. Headless panes are 160×50.
-- Login shells. Worktrees at `~/.herdr/worktrees`.
-- Prefix `ctrl+b`, plus the ctrl+alt chords.
-- Catppuccin, following light and dark.
-- Sidebar: machine, workspace, tab, agent, state. Toasts still show over SSH.
+- Onboarding off; headless panes `160×50`.
+- Login shells; worktrees at `~/.herdr/worktrees`.
+- Prefix `ctrl+b`, plus `ctrl+alt` chords.
+- Catppuccin Mocha (dark) and Latte (light), following system appearance.
+- Sidebar shows machine, workspace, tab, agent, and state; notifications and toasts stay enabled over SSH.
 
 ## Apply
 
-| Exit | Meaning |
-| --- | --- |
-| `0` | The file matches. A running server has loaded it only when `reload` is `reloaded`. |
-| `2` | The file is in place. Install Herdr from <https://herdr.dev/docs/install/>, then `./apply`. Do not rewrite the config. |
-| `1` | Follow `next`. |
-
-Live file: `~/.config/herdr/config.toml`, or `%APPDATA%\herdr\config.toml` on Windows. Do not hand-edit it.
+See `AGENTS.md` for machine setup, exit codes (`0`, `2`, `1`), and JSON report fields. Live destination: `~/.config/herdr/config.toml` (macOS/Linux) or `%APPDATA%\herdr\config.toml` (Windows Git Bash). Do not hand-edit the live file.
 
 ## Map
 
 | Path | Role |
 | --- | --- |
-| `setup.ts` | Runs `apply`, then prints the `/bootstrap` prompt. |
-| `apply` | Copies `config.toml`. Prints one JSON report. |
-| `config.toml` | The wrapper. `herdr-setup` matches `SETUP_VERSION` in `apply`. |
-| `AGENTS.md` | How an agent sets a machine up. |
-| `CONTRIBUTING.md` | How a change is made. |
-| `skills/` | `ponytail` is required. `turnkey-tk` stays the upstream package. `repo-protection` is the lock. |
-
-`./evals.ts` is the only eval runner. It rewrites this status block.
+| `setup.ts` | Public entry script: runs `./apply`, then prints the required `/bootstrap` prompt. |
+| `apply` | Idempotent config applier (`macOS`, `Linux`, `Windows Git Bash`). Emits one JSON report. |
+| `config.toml` | Herdr config (`herdr-setup:` stamp matches `SETUP_VERSION` in `apply`). |
+| `evals.ts` | Single eval runner (`macos` Apple container or `linux` Docker). Rewrites this status block and `badges/`. |
+| `eval-results.json` | Agent capability grades per `SETUP_VERSION`, rendered into `agents/models.md` and `badges/evals.svg`. |
+| `sandbox` | Read-only container build context (`sandbox/Containerfile`) used by `evals.ts`. |
+| `AGENTS.md` | Machine setup rules and agent invocation. |
+| `CONTRIBUTING.md` | Repo change, skill, eval, and merge rules. |
+| `agents/` | `independent-reviewer.md` prompt and rendered `models.md` grade matrix. |
+| `skills/` | Committed tool skills and their `CHECKLIST.md` decision files (`herdr`, `turnkey-tk`, `container`, `ponytail`, `repo-protection`, `agent-ready`, `author-skill`). |
 
 ## Changes
 
-- Bump `SETUP_VERSION` and the `herdr-setup` stamp together.
-- Push a branch. No direct push to `main`. Secrets go through `tk` only.
+See `CONTRIBUTING.md` for full change rules:
+
+- Bump `SETUP_VERSION` in `apply` and the `herdr-setup:` stamp in `config.toml` together.
+- Sign all commits (`skills/repo-protection/SKILL.md`), handle secrets only with `tk` (`skills/turnkey-tk/SKILL.md`), and run `./evals.ts` before merging.

@@ -16,32 +16,31 @@ answered: only the authenticated admin
 answered: yes
 
 3. What does a new commit need?
-- a signature the host verifies
+- a signature the host verifies (`signed-history` ruleset with `bypass: "none"`)
 - no signature
-answered: a signature the host verifies
+answered: a signature the host verifies (`signed-history` ruleset with `bypass: "none"`)
 
 4. May a branch be force-pushed?
-- no
+- no (`non_fast_forward` enforced on all branches with `bypass: "none"`)
 - yes, except the default branch
-answered: no
+answered: no (`non_fast_forward` enforced on all branches with `bypass: "none"`)
 
-5. How does the default branch move?
-- a pull request, squash or rebase, after the status checks named in the policy
-- a direct push
-- a merge commit
-answered: a pull request, squash or rebase, after the status checks named in the policy
+5. How does `main` move?
+- pull request (`merge`, `squash`, or `rebase`) after `linux` and `macos` status checks, with `authenticated-user` bypass allowed for signed fast-forward commits
+- unsigned or force-pushed commits
+answered: pull request (`merge`, `squash`, or `rebase`) after `linux` and `macos` status checks, with `authenticated-user` bypass allowed for signed fast-forward commits
 
 6. Who may create, move, or delete a tag?
-- the admin creates a tag, and nobody moves or deletes one
+- the authenticated admin creates tags, and nobody moves or deletes a tag (`immutable-tags` has `bypass: "none"`)
 - anyone with write access may move a tag
-answered: the admin creates a tag, and nobody moves or deletes one
+answered: the authenticated admin creates tags, and nobody moves or deletes a tag (`immutable-tags` has `bypass: "none"`)
 
-7. How does this machine sign?
-- SSH, with `commit.gpgsign` true and the public key registered on the account
-- unsigned
-answered: SSH, with `commit.gpgsign` true and the public key registered on the account
+7. How does this machine sign commits?
+- SSH signing (`commit.gpgsign = true`, `gpg.format = ssh`) using `tk` for Turnkey-managed keys or the machine's configured `gpg.ssh.program`, with the public key registered on GitHub and without `./apply` mutating git config
+- unsigned commits or keys stored in the repository
+answered: SSH signing (`commit.gpgsign = true`, `gpg.format = ssh`) using `tk` for Turnkey-managed keys or the machine's configured `gpg.ssh.program`, with the public key registered on GitHub and without `./apply` mutating git config
 
 8. What may the workflow token do?
-- read the repository, and it cannot approve a review
+- read the repository (`contents: read`), with action SHA pinning required and no pull-request review approval
 - write the repository
-answered: read the repository, and it cannot approve a review
+answered: read the repository (`contents: read`), with action SHA pinning required and no pull-request review approval

@@ -27,8 +27,18 @@ reload_detail=
 message=
 next=
 
+tmp=
+install_log=
+reload_log=
+
+cleanup_tmp() {
+  [ -n "$tmp" ] && rm -f "$tmp"
+  [ -n "$install_log" ] && rm -f "$install_log"
+  [ -n "$reload_log" ] && rm -f "$reload_log"
+}
+
 json_escape() {
-  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/	/\\t/g' | awk 'BEGIN { ORS = "" } NR > 1 { print "\\n" } { print }'
+  printf '%s' "$1" | tr -d '\r' | awk '{ gsub(/\033\[[0-9;]*[A-Za-z]/, ""); gsub(/[\001-\010\013\014\016-\037\177]/, ""); print }' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/	/\\t/g' | awk 'BEGIN { ORS = "" } NR > 1 { print "\\n" } { print }'
 }
 
 q() {
@@ -72,11 +82,12 @@ emit() {
 
 finish() {
   trap - EXIT
+  cleanup_tmp
   emit
   exit "$exit_code"
 }
 
-trap 'status=failed; exit_code=1; message="apply stopped unexpectedly at line $LINENO"; next="Re-run ./apply from a checkout of this repo and read this JSON. Do not edit the machine config by hand."; emit; exit 1' EXIT
+trap 'cleanup_tmp; status=failed; exit_code=1; message="apply stopped unexpectedly at line $LINENO"; next="Re-run ./apply from a checkout of this repo and read this JSON. Do not edit the machine config by hand."; emit; exit 1' EXIT
 
 find_herdr() {
   herdr_bin=
@@ -86,6 +97,10 @@ find_herdr() {
   fi
   if [ -x "$HOME_DIR/.local/bin/herdr" ]; then
     herdr_bin="$HOME_DIR/.local/bin/herdr"
+    return 0
+  fi
+  if [ -x "$HOME_DIR/.local/bin/herdr.exe" ]; then
+    herdr_bin="$HOME_DIR/.local/bin/herdr.exe"
     return 0
   fi
   return 1
@@ -117,7 +132,7 @@ if [ ! -f "$SRC" ]; then
   finish
 fi
 
-if ! grep -q "herdr-setup: $SETUP_VERSION" "$SRC"; then
+if ! grep -q "^# herdr-setup: ${SETUP_VERSION}$" "$SRC"; then
   message="config.toml is not stamped herdr-setup: $SETUP_VERSION."
   next="Bump the stamp in config.toml and SETUP_VERSION in apply together. Refusing to write a config this script does not claim."
   finish
@@ -130,7 +145,7 @@ if ! mkdir -p "$dest_dir" 2>/dev/null; then
   finish
 fi
 
-tmp="$dest_dir/config.toml.apply-tmp"
+tmp="$dest_dir/config.toml.apply-tmp.$$"
 if ! cp "$SRC" "$tmp" 2>/dev/null; then
   message="Could not write $tmp."
   next="Fix write permission on $dest_dir and re-run ./apply. The live config was not replaced."
@@ -150,6 +165,7 @@ elif [ -e "$config_path" ]; then
     finish
   fi
   if ! mv "$tmp" "$config_path" 2>/dev/null; then
+    rm -f "$tmp"
     message="Backup is at $backup_path but replacing $config_path failed."
     next="Move $backup_path back onto $config_path if the live file is missing, then re-run ./apply."
     finish
@@ -210,6 +226,8 @@ else
 fi
 
 if [ "$SKIP_RELOAD" = "1" ] || [ -z "$herdr_bin" ]; then
+  reload=skipped
+elif ! "$herdr_bin" status server >/dev/null 2>&1; then
   reload=skipped
 else
   reload_log=$(mktemp)

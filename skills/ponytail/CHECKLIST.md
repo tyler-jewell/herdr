@@ -5,7 +5,8 @@ This is the live checklist for this skill. Decide every item before using the sk
 ## Questions
 
 1. Which level applies to this change?
-- lite
-- full
-- ultra
+- lite — build what was asked and name the smaller option in one line
+- full — whole workflow: clarify, plan, code, verify, one-shot
+- ultra — question the request and push back on any unjustified part before building
 - off, because the person said stop ponytail or normal mode
+answered: full — whole workflow: clarify, plan, code, verify, one-shot

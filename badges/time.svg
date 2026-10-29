@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="77" height="20" role="img" aria-label="time: 13s">
-  <clipPath id="r"><rect width="77" height="20" rx="3" fill="#fff"/></clipPath>
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="20" role="img" aria-label="time: 5s">
+  <clipPath id="r"><rect width="70" height="20" rx="3" fill="#fff"/></clipPath>
   <g clip-path="url(#r)">
     <rect width="42" height="20" fill="#555"/>
-    <rect x="42" width="35" height="20" fill="#007ec6"/>
+    <rect x="42" width="28" height="20" fill="#007ec6"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
     <text x="21" y="14">time</text>
-    <text x="59" y="14">13s</text>
+    <text x="56" y="14">5s</text>
   </g>
 </svg>

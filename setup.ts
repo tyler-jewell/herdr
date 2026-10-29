@@ -21,18 +21,21 @@ function dirname(path: string): string {
 function localRoot(): string | null {
   const url = import.meta.url;
   if (!url.startsWith("file:")) return null;
-  const path = decodeURIComponent(new URL(url).pathname);
+  const raw = decodeURIComponent(new URL(url).pathname).replaceAll("\\", "/");
+  const path = /^\/[A-Za-z]:\//.test(raw) ? raw.slice(1) : raw;
   return dirname(path);
 }
 
 function remoteRepo(url: string): { clone: string; ref: string } | null {
   const match = url.match(
-    /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/setup\.ts$/,
+    /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/(.+)\/setup\.ts$/,
   );
   if (!match) return null;
+  const ref = decodeURIComponent(match[3]).replace(/^refs\/(heads|tags)\//, "");
+  if (!ref) return null;
   return {
     clone: `https://github.com/${match[1]}/${match[2]}.git`,
-    ref: decodeURIComponent(match[3]),
+    ref,
   };
 }
 
@@ -56,10 +59,22 @@ async function checkout(): Promise<string> {
       "Run deno on this file from a checkout, or deno run its raw URL.",
     );
   }
-  const home = Deno.env.get("HOME");
+  const home = Deno.env.get("HERDR_SETUP_HOME") || Deno.env.get("HOME") || Deno.env.get("USERPROFILE");
   if (!home) fail("HOME is unset.", "Set HOME and run setup.ts again.");
-  const dest = `${home}/.herdr/harness`;
-  if (await exists(`${dest}/apply`)) return dest;
+  const dest = `${home.replaceAll("\\", "/")}/.herdr/harness`;
+  if (await exists(`${dest}/apply`)) {
+    if (await exists(`${dest}/.git`)) {
+      await new Deno.Command("git", {
+        args: ["-C", dest, "pull", "--ff-only"],
+        stdout: "null",
+        stderr: "null",
+      }).output().catch(() => {});
+    }
+    return dest;
+  }
+  if (await exists(dest)) {
+    await Deno.remove(dest, { recursive: true });
+  }
 
   await Deno.mkdir(dirname(dest), { recursive: true });
   const clone = new Deno.Command("git", {
@@ -83,7 +98,7 @@ const apply = new Deno.Command(`${root}/apply`, {
 });
 const ran = await apply.output();
 if (ran.stderr.length > 0) {
-  Deno.stderr.write(ran.stderr);
+  await Deno.stderr.write(ran.stderr);
 }
 const text = new TextDecoder().decode(ran.stdout).trim();
 let report: unknown;

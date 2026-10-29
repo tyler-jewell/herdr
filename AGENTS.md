@@ -7,7 +7,7 @@ Hard rule. One question, one file. No exceptions and no copies.
 Is this about a machine, or about a change?
 
 - A machine: setup, `./apply`, the JSON report, or whether that computer is good. It belongs in `AGENTS.md` only.
-- A change: editing the repo, tests, merge, or rolling a change out. It belongs in `CONTRIBUTING.md` only.
+- A change: editing the repo, evals, merge, or rolling a change out. It belongs in `CONTRIBUTING.md` only.
 - Calling an agent: the Agents section. The agent's job belongs in its own file.
 
 A sentence about both gets split. Each file keeps its own sentence. Do not paste a rule into the other file. Point at it.
@@ -20,7 +20,9 @@ Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https
 
 ## Set up a machine
 
-A new machine starts with `setup.ts`. That script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. How scripts are written is `CONTRIBUTING.md`. Every change follows `skills/ponytail/SKILL.md`. How that is required is `CONTRIBUTING.md`.
+A new machine starts with `setup.ts`. That script is the one-command entry (`deno run --allow-run --allow-read --allow-write --allow-net setup.ts`): it runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required.
+
+`./apply` is the idempotent config applier. To apply or re-apply the config on a machine:
 
 1. Use a checkout of this repo on the machine. Run `./apply` from that checkout. Do not paste the config into place yourself.
 2. Read the JSON object on stdout. Ignore the urge to treat a friendly log line as success.
@@ -84,6 +86,6 @@ On the machine you just set up, run `./apply` a second time. `changed` must be `
 
 File: `agents/independent-reviewer.md`
 
-When: a change needs a review, or a Herdr agent run needs a score. A person can start it, or CI/CD can start it. The job is the same either way.
+When: a change needs a review, or a Herdr agent run needs a score. A person or CI/CD can start it.
 
-How: give the agent that file and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. The agent reads the source-of-truth docs named in that file, each one whole, before it reviews. When the change touches the container runtime, it also reads `skills/container/SKILL.md` whole. Do not paste that skill. A score is recorded in `eval-results.json`.
+How: give the agent `agents/independent-reviewer.md` and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. Its review procedure and required reading live in `agents/independent-reviewer.md`. A score is recorded in `eval-results.json`.

@@ -9,31 +9,21 @@ description: >
 
 # Repository lock
 
-Strangers can read, clone, and fork. A change lands only from the authenticated admin, and only as a verified signature. The committed policy is the lock. A setting that exists only on the host is not the lock.
+The public can read, clone, and fork. Only the authenticated admin can push or merge, and every commit on every branch must have a verified signature with no force-pushes and immutable tags. `references/policy.json` is the source of truth.
 
-Read [policy.json](references/policy.json) once. Then load only the row this request matches.
+Read [policy.json](references/policy.json) once, then load only the reference matching the task:
 
-## Which step
-
-| Request sounds like | Load |
+| Task | Reference |
 |---|---|
-| Put the lock on the repository, or make the live rules match the file | [apply.md](references/apply.md) |
-| Sign commits on this machine | [sign.md](references/sign.md) |
-| Someone wants write access, a deploy key, an Actions secret, or a fork workflow on a self-hosted runner | Stop. The policy does not allow it. |
-
-## References
-
-| Reference | Read when |
-|---|---|
-| [policy.json](references/policy.json) | always, once |
-| [apply.md](references/apply.md) | changing or checking the host rules |
-| [sign.md](references/sign.md) | this machine's commits |
+| Apply or verify repository rulesets and settings | [apply.md](references/apply.md) |
+| Configure or verify commit signing on this machine | [sign.md](references/sign.md) |
+| Add a collaborator, deploy key, Actions secret, or `pull_request` trigger | Stop. The policy forbids it. |
 
 ## Vocabulary
 
 | Term | Meaning |
 |---|---|
-| policy | `references/policy.json`, the lock to apply |
-| authenticated admin | the account `gh api user` returns. The only bypass actor |
-| verified signature | the host reports `verified: true` and `reason: valid` |
-| probe | a throwaway branch used to prove a push is accepted or rejected, then deleted |
+| policy | `references/policy.json`, the committed lock |
+| authenticated admin | the account `gh api user` returns (`authenticated-user` bypass actor) |
+| verified signature | GitHub reports `verified: true` and `reason: valid` |
+| probe | a throwaway branch used to verify push enforcement, then deleted |

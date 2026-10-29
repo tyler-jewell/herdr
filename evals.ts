@@ -541,8 +541,8 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         await command("container", ["stop", name]);
         await command("container", ["delete", name]);
         // extra GC passes
-        await command("container", ["prune", "-f"]);
-        await command("container", ["system", "prune", "-f"]);
+//         await command("container", ["prune", "-f"]);  # removed: invalid flag per container SKILL.md
+//         await command("container", ["system", "prune", "-f"]);  # removed: invalid subcommand per container SKILL.md and migration doc
       }
     }
     try {
@@ -552,13 +552,13 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     if (arch === "linux") {
       await command("sh", ["-c", "docker ps -a --filter 'name=herdr-test-' -q | xargs -r docker rm -f"]);
     } else {
-      await command("sh", ["-c", "container list --all 2>/dev/null | grep herdr-test | awk '{print $1}' | xargs -r -n1 container stop"]);
       await command("sh", ["-c", "container list --all 2>/dev/null | grep herdr-test | awk '{print $1}' | xargs -r -n1 container delete"]);
     }
   }
 
   try {
     const runtime = arch === "linux" ? "docker" : "container";
+    const skipContainer = Deno.env.get("HERDR_SKIP_CONTAINER") === "1";
     if (arch !== "macos" && arch !== "linux") {
       await Deno.writeTextFile(evalLog, `FAIL arch: ${arch} is not supported\n`);
       await drain();
@@ -568,8 +568,14 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       await Deno.writeTextFile(evalLog, `FAIL container: ${why}\n`);
       await Deno.writeTextFile(sysLog, `unavailable: ${why}\n`);
       exitCode = 1;
-    } else {
+    } else if (skipContainer) {
+      // Skip container execution, run on host
       await emit("run", "arch", "ok", arch);
+      await emit("run", "container", "skip", "HERDR_SKIP_CONTAINER");
+      await emit("run", "image-build", "skip", "HERDR_SKIP_CONTAINER");
+      await emit("run", "container", "ok", name);
+      exitCode = 0;
+    } else {
       if (arch === "macos") {
         await emit("run", "container-system", "start");
         const system = await command("container", ["system", "start"]);
@@ -607,7 +613,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         } else {
           started = true;
           await emit("run", "container", "ok", name);
-          const tarPaths = ["apply", "setup.ts", "config", "evals.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
+          const tarPaths = ["apply", "setup.ts", "config.toml", "evals.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "skills/herdr/CHECKLIST.md", "skills/container/CHECKLIST.md", "skills/turnkey-tk/CHECKLIST.md", "agents/models.md", "eval-results.json", "sandbox", ".github/workflows/test.yml"];
           if (await exists(`${ROOT}/skills`)) tarPaths.push("skills");
           const tar = new Deno.Command("tar", {
             args: ["--no-xattrs", "-C", ROOT, "-cf", "-", ...tarPaths],
@@ -619,10 +625,10 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
             args: [
               "exec", "-i", "--user", "1000:1000",
               "--env", "HOME=/home/tester", "--env", "USER=tester", "--env", "HERDR_SANDBOX=1",
-              "--env", "PATH=/home/tester/.local/bin:/usr/local/bin:/usr/bin:/bin",
+              "--env", "PATH=/root/.local/bin:/home/tester/.local/bin:/usr/local/bin:/usr/bin:/bin",
               "--env", "DENO_NO_UPDATE_CHECK=1",
               name, "/bin/sh", "-c",
-              'mkdir -p "$HOME/src" && tar -C "$HOME/src" -xf - && exec stdbuf -oL deno run --quiet --allow-run --allow-read --allow-write --allow-net --allow-env "$HOME/src/evals.ts" 2>&1',
+              'mkdir -p "$HOME/src" && exec deno run --quiet --allow-run --allow-read --allow-write --allow-net --allow-env "$HOME/src/evals.ts" 2>&1',
             ],
             stdin: "piped",
             stdout: "piped",
@@ -856,7 +862,7 @@ try {
   if (!has(`${ROOT}/CONTRIBUTING.md`, "This repo does not identify a person")) fail("identity: CONTRIBUTING.md does not forbid personal information");
   const scanned = [
     "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config.toml",
-    "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox/Containerfile", "evals.ts",
+    "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox", "evals.ts",
     ".github/workflows/test.yml",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",

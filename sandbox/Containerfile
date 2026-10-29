@@ -1,11 +1,11 @@
 # Tools for a non-root Herdr install. The test does not run as root.
 FROM docker.io/library/debian:bookworm-slim
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl git bash unzip \
-  && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
-  && rm -rf /var/lib/apt/lists/* \
-  && useradd --create-home --uid 1000 --shell /bin/bash tester
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git bash unzip && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deno.land/install.sh | sh 2>&1
+RUN mkdir -p /root/.local/bin
+RUN chmod +x /root/.deno/bin/deno
+RUN ln -sf /root/.deno/bin/deno /root/.local/bin/deno
 
 USER tester
 WORKDIR /home/tester
