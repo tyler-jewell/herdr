@@ -23,11 +23,11 @@ Stand up a system from the skills in this repo. Decide first. Implement after th
 
 Do this before round 1, and again after each round's answers are written.
 
-Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `CONTRIBUTING.md`, `README.md`, `AGENTS.md`, `config.toml`, `apply`, and `Containerfile`.
+Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists and requirements name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `CONTRIBUTING.md`, `README.md`, `AGENTS.md`, `config.toml`, `apply`, and `Containerfile`.
 
 An item is already answered only when that evidence forces one of its choices, or the item itself names that choice as the current setup. Under the question, write `answered: ` and the choice text. Leave the other choices. An item that already has an `answered:` line stays closed. Anything else stays open. One forced choice, or it stays open.
 
-Do this for every `skills/**/CHECKLIST.md`.
+Do this for every `skills/**/CHECKLIST.md` and `skills/**/REQUIREMENTS.md`.
 
 ## One round
 
@@ -43,7 +43,9 @@ That is one round.
 
 After the last round, build the system the answered items select.
 
-Load a skill only when an answered item requires it. Read that `SKILL.md` from start to finish, then only the files that skill names.
+Load a skill only when an answered item requires it. Read that `SKILL.md` from start to finish, then only the files that skill names -- and cross-reference with `REQUIREMENTS.md` to confirm the decision maps to a config change or package install.
+
+Only implement changes classified as `Config` (maps to config.toml) or `Package` (maps to CLI/package install). Skip items classified as `Remove` -- these are script-internal behaviors or decisions that do not drive system configuration.
 
 Implement from those files alone. Open a URL only when one of those files contains it. A link on the fetched page is not a new source. Do not search the web. Do not use a command, flag, or path those files do not list.
 
