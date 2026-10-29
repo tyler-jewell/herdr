@@ -14,6 +14,8 @@ A sentence about both gets split. Each file keeps its own sentence. Do not paste
 
 This file is the machine file. Read it before installing or fixing Herdr on a computer.
 
+Read `README.md` for the current status of this project before you act, and keep that status in mind until the task is done. Do not copy that status into this file.
+
 Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https://herdr.dev/docs/>. This repo is the config. When they disagree, the product docs win for how Herdr works, and this repo wins for which settings belong on a machine.
 
 ## Set up a machine

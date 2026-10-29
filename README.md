@@ -4,9 +4,94 @@
 ![tests run](badges/tests.svg)
 ![test seconds](badges/time.svg)
 
-Pills are rewritten by `./test.ts`. They describe that run: pass or fail for the latest commit with local changes included, how many test cases ran, and the total seconds including container startup.
+This is the setup repo for [Herdr](https://herdr.dev). The status block is the current state of the harness. `./test.ts` rewrites that block and the pills. Do not edit them by hand.
 
-This is a setup repo for [Herdr](https://herdr.dev), the terminal multiplexer coding agents run in. One public script sets up the computer it is run on: macOS, Linux, Windows Git Bash, or WSL, on any machine.
+<!-- status:start -->
+## Status
+
+| | |
+| --- | --- |
+| result | pass |
+| cases | 29 |
+| seconds | 15 |
+| revision | 5498527+ |
+
+### Progress
+
+| t | kind | name | status | detail |
+| --- | --- | --- | --- | --- |
+| 0s | run | arch | ok | macos |
+| 0s | run | container-system | start |  |
+| 0s | run | image-build | start | herdr-sandbox |
+| 2s | run | image-build | ok | herdr-sandbox |
+| 2s | run | container | start | herdr-test-8576 |
+| 3s | run | container | ok | herdr-test-8576 |
+| 5s | check | arch | ok |  |
+| 5s | check | events | ok |  |
+| 5s | check | skill | ok |  |
+| 5s | check | herdr-skill | ok |  |
+| 5s | check | skills-rule | ok |  |
+| 5s | check | checklist | ok |  |
+| 5s | check | bootstrap | ok |  |
+| 5s | check | identity | ok |  |
+| 5s | check | reviewer | ok |  |
+| 5s | check | models | ok |  |
+| 5s | check | setup | ok |  |
+| 5s | check | tk | ok |  |
+| 5s | check | pills | ok |  |
+| 5s | check | status | ok |  |
+| 5s | check | fresh | ok |  |
+| 5s | check | idempotent | ok |  |
+| 5s | check | drift | ok |  |
+| 5s | check | linux | ok |  |
+| 5s | check | windows | ok |  |
+| 5s | check | unknown-os | ok |  |
+| 5s | check | unwritable | ok |  |
+| 5s | check | installer | ok |  |
+| 5s | check | stamp | ok |  |
+| 12s | check | live-apply | ok |  |
+| 12s | check | live-config | ok |  |
+| 14s | check | live-agents | ok |  |
+| 14s | check | live-core | ok |  |
+| 14s | check | live-worktree | ok |  |
+| 14s | check | live-stop | ok |  |
+| 15s | result | suite | pass |  |
+
+### Memory
+
+```text
+container herdr-test-8576
+memory 145.6 MiB / 1024.0 MiB
+cpu_usec 1244335
+pids 2
+net_rx 29964438
+net_tx 245795
+block_read 120717312
+block_write 0
+```
+
+### System
+
+```text
+container 1.5.0, arm64, cpus 8, running 2/2, images 6
+
+disk:
+TYPE           TOTAL  ACTIVE  SIZE     RECLAIMABLE
+Images         6      2       7.48 GB  4.38 GB (59%)
+Containers     2      2       4.02 GB  0 B (0%)
+Local Volumes  0      0       0 B      0 B (0%)
+```
+
+### Grades
+
+| model | where | skill calling |
+| --- | --- | --- |
+| qwen2.5-coder-3b-instruct-q8_0 | local | D |
+<!-- status:end -->
+
+## Set up
+
+One public script sets up the computer it is run on: macOS, Linux, Windows Git Bash, or WSL.
 
 ```text
 deno run --allow-run --allow-read --allow-write --allow-net setup.ts
@@ -14,7 +99,7 @@ deno run --allow-run --allow-read --allow-write --allow-net setup.ts
 
 Run that from a checkout, or point `deno run` at the raw URL of `setup.ts`. The script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required.
 
-`./apply` is the step that copies the config. It prints one JSON object and exits `0` when `config/config.toml` is now the Herdr config on that machine. Exit `2` means the file is in place and Herdr itself is still missing. Exit `1` means the file was not applied. The `next` field says what to do. Do not guess past it.
+`./apply` copies the config and prints one JSON object. Exit `0` means `config/config.toml` is now the Herdr config. Exit `2` means the file is in place and Herdr itself is still missing. Exit `1` means the file was not applied. The `next` field says what to do. Do not guess past it.
 
 The public script is the way this setup reaches a machine. Editing `~/.config/herdr/config.toml` (or `%APPDATA%\herdr\config.toml` on Windows) by hand drifts that computer off the herd. Change `config/config.toml`, bump the setup version, and run `./apply` again.
 
@@ -41,12 +126,12 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `setup.ts` | The one public script. Runs `apply`, then hands an agent `/bootstrap`. |
 | `apply` | Copies `config/config.toml` onto the machine. |
 | `config/config.toml` | The config that `apply` copies. |
-| `AGENTS.md` | How an agent sets a machine up with this repo. |
+| `AGENTS.md` | How an agent sets a machine up with this repo. Read `README.md` first for current status. |
 | `CONTRIBUTING.md` | Rules for changing the setup. |
-| `test.ts` | The only test. Default arch `macos` runs the checks in an Apple container. |
-| `agents/independent-reviewer.md` | Reviews a change. A person or CI/CD can call it. |
-| `agents/models.md` | Local and cloud models, and the grades they have earned. |
-| `skills/turnkey-tk` | Official `tk` skill. Secrets and keys go through `tk` only. |
+| `test.ts` | The only test. Default arch `macos` runs the checks in an Apple container. It rewrites the status block. |
+| `agents/independent-reviewer.md` | Reviews a change, or scores an agent run. |
+| `agents/models.md` | Local and cloud models, and the grades they have earned. Copied into the status block on each test run. |
+| `skills/` | One skill per tool. Official packages stay as published. |
 | `badges/` | Pills for the last local test: result, cases, seconds. |
 
-Run `./test.ts` before sending a change. `deno` must be on `PATH`. The report stays in four sections even when the test fails.
+Run `./test.ts` before sending a change. `deno` must be on `PATH`. The report stays in four sections even when the test fails. The status block above is the record of that run.

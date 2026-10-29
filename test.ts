@@ -250,6 +250,110 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
 `;
   }
 
+  function unsafe(body: string): boolean {
+    return /\/Users\/|\/home\/[A-Za-z0-9._-]+|gmail\.com/i.test(body);
+  }
+
+  function systemSummary(raw: string): string {
+    const diskAt = raw.indexOf("\ndisk:\n");
+    const statusPart = diskAt === -1 ? raw : raw.slice(0, diskAt);
+    const disk = diskAt === -1 ? "" : raw.slice(diskAt + 1).trim();
+    let line = "unavailable";
+    const jsonAt = statusPart.indexOf("{");
+    if (jsonAt !== -1) {
+      try {
+        const data = JSON.parse(statusPart.slice(jsonAt)) as {
+          client?: { version?: string };
+          host?: { architecture?: string; cpus?: number };
+          resources?: { containersRunning?: number; containersTotal?: number; images?: number };
+        };
+        line = [
+          `container ${data.client?.version ?? "unknown"}`,
+          data.host?.architecture ?? "unknown",
+          `cpus ${data.host?.cpus ?? "unknown"}`,
+          `running ${data.resources?.containersRunning ?? "unknown"}/${data.resources?.containersTotal ?? "unknown"}`,
+          `images ${data.resources?.images ?? "unknown"}`,
+        ].join(", ");
+      } catch {
+        line = "status command failed";
+      }
+    }
+    const diskSafe = disk.split("\n").filter((line) => !unsafe(line)).join("\n");
+    return diskSafe ? `${line}\n\n${diskSafe}` : line;
+  }
+
+  function gradeTable(): string {
+    try {
+      const rows = text(`${ROOT}/agents/models.md`).split("\n").filter((line) => line.startsWith("|"));
+      return rows.length ? rows.join("\n") : "No grade table.";
+    } catch {
+      return "No grade table.";
+    }
+  }
+
+  function statusMarkdown(result: string, cases: number, seconds: number, memBody: string, sysBody: string, timeline: string): string {
+    const memory = memBody.trim() || "unavailable";
+    return [
+      "## Status",
+      "",
+      "| | |",
+      "| --- | --- |",
+      `| result | ${result} |`,
+      `| cases | ${cases} |`,
+      `| seconds | ${seconds} |`,
+      `| revision | ${pillRev} |`,
+      "",
+      "### Progress",
+      "",
+      timeline,
+      "",
+      "### Memory",
+      "",
+      "```text",
+      memory,
+      "```",
+      "",
+      "### System",
+      "",
+      "```text",
+      systemSummary(sysBody),
+      "```",
+      "",
+      "### Grades",
+      "",
+      gradeTable(),
+      "",
+    ].join("\n");
+  }
+
+  function timeline(eventsBody: string): string {
+    const rows = ["| t | kind | name | status | detail |", "| --- | --- | --- | --- | --- |"];
+    for (const rec of eventsBody.split("\n\n")) {
+      const kind = rec.match(/^event: (.+)$/m)?.[1];
+      const dataLine = rec.match(/^data: (.+)$/m)?.[1];
+      if (!kind || !dataLine) continue;
+      const data = JSON.parse(dataLine) as { elapsed_s?: number; name?: string; status?: string; detail?: string };
+      const detail = String(data.detail ?? "").replaceAll("|", "/");
+      rows.push(`| ${data.elapsed_s ?? 0}s | ${kind} | ${data.name ?? ""} | ${data.status ?? ""} | ${detail} |`);
+    }
+    return rows.length > 2 ? rows.join("\n") : "| t | kind | name | status | detail |\n| --- | --- | --- | --- | --- |\n| 0s | result | suite | missing | |";
+  }
+
+  async function writeStatus(result: string, cases: number, seconds: number, memBody: string, sysBody: string): Promise<void> {
+    const eventsBody = await Deno.readTextFile(events).catch(() => "");
+    const block = statusMarkdown(result, cases, seconds, memBody, sysBody, timeline(eventsBody));
+    if (unsafe(block)) throw new Error("rendered block contains a home path");
+    const path = `${ROOT}/README.md`;
+    const readme = await Deno.readTextFile(path);
+    const start = "<!-- status:start -->";
+    const end = "<!-- status:end -->";
+    if (!readme.includes(start) || !readme.includes(end) || readme.indexOf(start) > readme.indexOf(end)) {
+      throw new Error("README has no status markers");
+    }
+    const next = readme.replace(/<!-- status:start -->[\s\S]*?<!-- status:end -->/, `${start}\n${block}${end}`);
+    await Deno.writeTextFile(path, next);
+  }
+
   async function writePills(result: string, cases: number, seconds: number): Promise<void> {
     await Deno.mkdir(`${ROOT}/badges`, { recursive: true });
     const color = result === "pass" ? "#2ea44f" : "#cb2431";
@@ -427,10 +531,32 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     exitCode = 1;
     await append(testLog, `FAIL host: ${err instanceof Error ? err.message : err}\n`);
   } finally {
-    const logBody = await Deno.readTextFile(testLog).catch(() => "");
+    let logBody = await Deno.readTextFile(testLog).catch(() => "");
+    const memBody = await Deno.readTextFile(memLog).catch(() => "unavailable\n");
+    const sysBody = await Deno.readTextFile(sysLog).catch(() => "unavailable\n");
+    const seconds = Math.floor(Date.now() / 1000) - startS;
+    try {
+      const eventsBody = await Deno.readTextFile(events).catch(() => "");
+      const preview = statusMarkdown(exitCode === 0 ? "pass" : "fail", countCases(logBody), seconds, memBody, sysBody, timeline(eventsBody));
+      if (unsafe(preview)) {
+        exitCode = 1;
+        await append(testLog, "FAIL status: rendered block contains a home path\n");
+        logBody = await Deno.readTextFile(testLog);
+      }
+    } catch (err) {
+      exitCode = 1;
+      await append(testLog, `FAIL status: ${err instanceof Error ? err.message : err}\n`);
+      logBody = await Deno.readTextFile(testLog);
+    }
     await report();
     await cleanup();
-    await writePills(exitCode === 0 ? "pass" : "fail", countCases(logBody), Math.floor(Date.now() / 1000) - startS);
+    try {
+      await writeStatus(exitCode === 0 ? "pass" : "fail", countCases(logBody), seconds, memBody, sysBody);
+    } catch (err) {
+      exitCode = 1;
+      console.log(`FAIL status: ${err instanceof Error ? err.message : err}`);
+    }
+    await writePills(exitCode === 0 ? "pass" : "fail", countCases(logBody), seconds);
   }
   Deno.exit(exitCode);
 }
@@ -601,6 +727,12 @@ try {
   if (!has(`${ROOT}/README.md`, "badges/tests.svg")) fail("pills: README has no tests pill");
   if (!has(`${ROOT}/README.md`, "badges/time.svg")) fail("pills: README has no time pill");
   ok("pills");
+
+  if (!has(`${ROOT}/README.md`, "<!-- status:start -->")) fail("status: README has no status block");
+  if (!has(`${ROOT}/README.md`, "<!-- status:end -->")) fail("status: README status block is open");
+  if (!has(`${ROOT}/AGENTS.md`, "Read `README.md` for the current status")) fail("status: AGENTS.md does not send agents to README");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "rewrites the status block in `README.md`")) fail("status: CONTRIBUTING.md does not keep the status block");
+  ok("status");
 
   let code = await runApply(`${tmp}/fresh`, "Darwin", `${tmp}/fresh.json`);
   assertStatus(code, 0, `${tmp}/fresh.json`, "fresh", "applied");
