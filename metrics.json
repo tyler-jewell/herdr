@@ -1,0 +1,15 @@
+{
+  "about": "Purpose: the 10 core metrics every agent eval run is measured on, all computed automatically from the run (results.ts). Change when: a metric is added, removed, or measured differently; change results.ts in the same commit. Not for: judged qualities (capabilities.json), the evals themselves (evals.json).",
+  "metrics": [
+    { "id": "wall_seconds", "name": "Wall time", "unit": "s", "better": "lower", "how": "From sending the prompt to the agent's screen settling, timed by agent.ts." },
+    { "id": "first_action_seconds", "name": "Time to first action", "unit": "s", "better": "lower", "how": "From the prompt entry to the first assistant entry in the session." },
+    { "id": "turns", "name": "Turns", "unit": "count", "better": "lower", "how": "Assistant messages in the session." },
+    { "id": "tool_calls", "name": "Tool calls", "unit": "count", "better": "lower", "how": "Tool call blocks in assistant messages." },
+    { "id": "failed_tool_calls", "name": "Failed tool calls", "unit": "count", "better": "lower", "how": "Tool results marked as errors." },
+    { "id": "repeated_tool_calls", "name": "Repeated tool calls", "unit": "count", "better": "lower", "how": "Tool calls whose tool name and arguments already appeared earlier in the session." },
+    { "id": "input_tokens", "name": "Input tokens", "unit": "tokens", "better": "lower", "how": "Prompt tokens per assistant message, fresh plus cache read, summed." },
+    { "id": "output_tokens", "name": "Output tokens", "unit": "tokens", "better": "lower", "how": "Generated tokens per assistant message, thinking included, summed." },
+    { "id": "compactions", "name": "Compactions", "unit": "count", "better": "lower", "how": "Compaction entries: times the agent ran out of context." },
+    { "id": "files_changed", "name": "Files changed", "unit": "count", "better": "lower", "how": "Files added, modified, or deleted in the sandbox's writable folders during the run, outside the harness's own Pi and Herdr state." }
+  ]
+}
