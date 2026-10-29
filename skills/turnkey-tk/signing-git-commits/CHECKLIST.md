@@ -10,7 +10,7 @@ Docs: vendored `skills/turnkey-tk/docs/git-signing.md` and `docs/gpg-signing.md`
 
 ## Gaps
 
-Main `docs/git-signing.md` adds `git hook list commit-msg` and says Git older than 2.54 ignores `hook.turnkey-co-author` with no error, and it uses a committer form `Name (agent) <local-part+agent@domain>`. The vendored page and skill still show the hook without that version check and use `Agent <agent@example.com>`. This host's Git is already 2.54.0. Main `docs/gpg-signing.md` leads GitHub registration with a paste or `gh gpg-key add` and says earlier commits become Verified only after the user-id email is verified. Global git config already has `user.name`, `user.email`, `user.signingkey`, `commit.gpgsign`, `gpg.format`, and `gpg.ssh.program`, so `--global` would replace that signer. `test.sh` runs one Apple `container run` with no `--ssh`, `--read-only`, `--cap-drop ALL`, user `1000:1000`, tmpfs `/tmp` and `/home/tester`, and no host mount; that guest has git, not GnuPG or `tk`, and cannot see a host socket. The broker is a process layout in deploying-signing-broker, not a `tk` subcommand.
+Main `docs/git-signing.md` adds `git hook list commit-msg` and says Git older than 2.54 ignores `hook.turnkey-co-author` with no error, and it uses a committer form `Name (agent) <local-part+agent@domain>`. The vendored page and skill still show the hook without that version check and use `Agent <agent@example.com>`. This host's Git is already 2.54.0. Main `docs/gpg-signing.md` leads GitHub registration with a paste or `gh gpg-key add` and says earlier commits become Verified only after the user-id email is verified. Global git config already has `user.name`, `user.email`, `user.signingkey`, `commit.gpgsign`, `gpg.format`, and `gpg.ssh.program`, so `--global` would replace that signer. `test.ts` runs one Apple `container run` with no `--ssh`, `--read-only`, `--cap-drop ALL`, user `1000:1000`, tmpfs `/tmp` and `/home/tester`, and no host mount; that guest has git, not GnuPG or `tk`, and cannot see a host socket. The broker is a process layout in deploying-signing-broker, not a `tk` subcommand.
 
 ## Questions
 
@@ -131,7 +131,7 @@ Answer every question. Yes/no/other means those three lines. Otherwise select ev
    - agent commits only, while human commits keep the current signer
    - other
 
-18. Should `test.sh` stay unsigned, with `tester@example.com` only inside that container and never on a Turnkey key?
+18. Should `test.ts` stay unsigned, with `tester@example.com` only inside that container and never on a Turnkey key?
    - yes
    - no
    - other

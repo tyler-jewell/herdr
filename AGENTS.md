@@ -18,6 +18,8 @@ Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https
 
 ## Set up a machine
 
+A new machine starts with `setup.ts`. That script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. How scripts are written is `CONTRIBUTING.md`.
+
 1. Use a checkout of this repo on the machine. Run `./apply` from that checkout. Do not paste the config into place yourself.
 2. Read the JSON object on stdout. Ignore the urge to treat a friendly log line as success.
 3. Stop when you can say which of these is true.
@@ -61,7 +63,7 @@ A machine is good when all of these hold:
 - Do not reinstall Herdr when `install` is `present`.
 - `apply` installs Herdr only when the binary is missing, using the official installer (`https://herdr.dev/install.sh`, or `install.ps1` from Git Bash). A failed install must not be papered over by copying binaries from another machine.
 - A backup is the previous config, for reading. Do not merge it back. The repo file is the setup.
-- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`) exist so `test.sh` can use a fake home. Never set them on a real machine.
+- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`) exist so `test.ts` can use a fake home. Never set them on a real machine.
 - WSL is Linux. Native Windows is Git Bash. PowerShell alone cannot host `./apply`.
 - On a machine, run `./apply` and stop. Do not change shells, git, editors, SSH, or anything else.
 - A secret or a key is handled only with `tk` (<https://github.com/tkhq/tk>). Read `skills/turnkey-tk/SKILL.md` and follow it. Do not print the value, and do not put it in this repo or in any other store.

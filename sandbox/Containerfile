@@ -2,7 +2,8 @@
 FROM docker.io/library/debian:bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates curl git bash \
+  && apt-get install -y --no-install-recommends ca-certificates curl git bash unzip \
+  && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
   && rm -rf /var/lib/apt/lists/* \
   && useradd --create-home --uid 1000 --shell /bin/bash tester
 
