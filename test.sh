@@ -369,6 +369,7 @@ reviewer="$ROOT/agents/independent-reviewer.md"
 [ -f "$reviewer" ] || fail "reviewer: missing agents/independent-reviewer.md"
 grep -q 'skills/container/SKILL.md' "$reviewer" || fail "reviewer: does not read skills/container/SKILL.md"
 grep -q 'from start to finish before you judge' "$reviewer" || fail "reviewer: skill is not read before judging"
+grep -q 'prompt exactly `/bootstrap`' "$reviewer" || fail "reviewer: does not score the one-turn bootstrap run"
 printf 'ok reviewer\n'
 
 # Official tk package from tkhq/tk, installed by `tk skills install`. The only secrets and keys path.

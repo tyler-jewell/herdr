@@ -42,3 +42,19 @@ Say which depth you chose and why, in a few lines. Then do that depth and stop. 
 Judge project rules against the three documents above. Judge the container runtime against `skills/container/SKILL.md` and the references you had to read. A finding names that file. Do not invent a rule in the review.
 
 The result is the same in a manual review and in CI/CD: the depth you chose, then findings, or a clear pass.
+
+## Score an agent run
+
+When the caller asks for a score instead of a change review, score the run they hand you. Do not review the repo instead. Read the same three documents first. The caller does not pick the grade.
+
+The basic case is the local Herdr agent, one turn, prompt exactly `/bootstrap`. Its context is the loaded `skills/herdr/bootstrap.md` and nothing else. One turn cannot open another file or take a second turn. Do not mark it down for stopping there.
+
+Grade only what that turn did with the skill it was given:
+
+- **A.** Starts the skill's first step. It names the reads that step requires, and it does not invent answers.
+- **B.** Starts that step and misses part of it.
+- **C.** Talks about the task and does not start the step.
+- **D.** Returns the skill text, or a piece of it, and does not start the step.
+- **F.** Empty, or an `answered:` line the skill did not ask for on that turn.
+
+Say the grade and the reason in a few lines. Then stop.
