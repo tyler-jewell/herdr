@@ -30,11 +30,13 @@ Use the official skill when one exists. Cloudflare work uses the Cloudflare skil
 
 When you need a skill that is not already in this repo, fetch it with `npx skills`, then copy it into `skills/` by hand and commit it. `npx skills` is only how you fetch. The committed copy is the one agents use.
 
-When no skill exists, write one in `skills/` and commit it. Every skill this repo writes follows the format of `skills/turnkey-tk`. That skill is clean, modern, and very powerful.
+When no skill exists, write one in `skills/` and commit it. Follow `skills/author-skill/SKILL.md` to do that. Every skill this repo writes follows the format of `skills/turnkey-tk`. That skill is clean, modern, and very powerful.
 
 Each skill has one `CHECKLIST.md` beside its `SKILL.md`. That file is the live decision list for the skill. Update it in the same change when the skill's commands or docs change. Do not copy it into another file. `test.sh` checks that it is there. `CHECKLIST.md` is not part of an upstream package. `tk skills install` refuses a package it did not write, so set those files aside before an install and put them back after.
 
 `skills/herdr/bootstrap.md` is the questioning procedure for those checklists. Change the rounds, the question count, or the implementation limit there. It has no `CHECKLIST.md` of its own. Do not copy the procedure into another file.
+
+`skills/herdr/SKILL.md` is the official Herdr skill from `herdrdev/herdr` tag `v0.9.5`. Leave it as published. `skills/herdr/bootstrap.md` and `skills/herdr/CHECKLIST.md` are this repo's files beside it. Set those aside before replacing the official file, then put them back. `test.sh` checks the official file is there.
 
 ## Required for every change
 

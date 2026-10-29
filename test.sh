@@ -323,6 +323,17 @@ grep -q 'github.com/apple/container' "$skill" || fail "skill: SKILL.md is not th
 [ -f "$ROOT/skills/container/references/container-machines.md" ] || fail "skill: missing references/container-machines.md"
 printf 'ok skill\n'
 
+# Official Herdr control skill, vendored beside this repo's bootstrap file.
+herdr_skill="$ROOT/skills/herdr/SKILL.md"
+[ -f "$herdr_skill" ] || fail "herdr-skill: missing skills/herdr/SKILL.md"
+grep -q 'name: herdr' "$herdr_skill" || fail "herdr-skill: name is not herdr"
+grep -q 'HERDR_ENV=1' "$herdr_skill" || fail "herdr-skill: HERDR_ENV check missing"
+grep -q 'herdrdev/herdr/blob/v0.9.5/skills/herdr/SKILL.md' "$ROOT/skills/herdr/SOURCE" || fail "herdr-skill: SOURCE is not v0.9.5"
+[ -f "$ROOT/skills/author-skill/SKILL.md" ] || fail "author-skill: missing skills/author-skill/SKILL.md"
+grep -q 'develop a skill centered around' "$ROOT/skills/author-skill/SKILL.md" || fail "author-skill: trigger missing"
+grep -q 'Follow `skills/author-skill/SKILL.md`' "$ROOT/CONTRIBUTING.md" || fail "author-skill: CONTRIBUTING.md does not name it"
+printf 'ok herdr-skill\n'
+
 # Every tool or service has a skill committed under skills/. The rule lives in CONTRIBUTING.md.
 grep -q 'Every tool or service this repo uses has its skill in `skills/`' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not require a committed skill per tool"
 grep -q 'npx skills' "$ROOT/CONTRIBUTING.md" || fail "skills: CONTRIBUTING.md does not name npx skills"
@@ -351,7 +362,7 @@ printf 'ok bootstrap\n'
 
 # Project files do not identify a person. Upstream skills are not part of this scan.
 grep -q 'This repo does not identify a person' "$ROOT/CONTRIBUTING.md" || fail "identity: CONTRIBUTING.md does not forbid personal information"
-for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md sandbox/Containerfile test.sh skills/herdr/bootstrap.md; do
+for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md sandbox/Containerfile test.sh skills/herdr/bootstrap.md skills/herdr/CHECKLIST.md skills/author-skill/SKILL.md skills/author-skill/CHECKLIST.md skills/author-skill/references/research.md skills/author-skill/references/vendor.md skills/author-skill/references/write.md; do
   [ -f "$ROOT/$f" ] || fail "identity: missing $f"
   if grep -Ei 'ty''ler|je''well|gm''ail\.com' "$ROOT/$f" >/dev/null; then
     fail "identity: $f identifies a person"
@@ -360,7 +371,12 @@ done
 emails=$(grep -E -h -o '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
   "$ROOT/README.md" "$ROOT/AGENTS.md" "$ROOT/CONTRIBUTING.md" "$ROOT/apply" \
   "$ROOT/config/config.toml" "$ROOT/agents/independent-reviewer.md" \
-  "$ROOT/sandbox/Containerfile" "$ROOT/test.sh" "$ROOT/skills/herdr/bootstrap.md" | grep -v '^tester@example.com$' || true)
+  "$ROOT/sandbox/Containerfile" "$ROOT/test.sh" "$ROOT/skills/herdr/bootstrap.md" \
+  "$ROOT/skills/herdr/CHECKLIST.md" \
+  "$ROOT/skills/author-skill/SKILL.md" "$ROOT/skills/author-skill/CHECKLIST.md" \
+  "$ROOT/skills/author-skill/references/research.md" \
+  "$ROOT/skills/author-skill/references/vendor.md" \
+  "$ROOT/skills/author-skill/references/write.md" | grep -v '^tester@example.com$' || true)
 [ -z "$emails" ] || fail "identity: email in a project file"
 printf 'ok identity\n'
 
