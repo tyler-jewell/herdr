@@ -187,12 +187,39 @@ fi
 
 # ── Execute in waves, one git worktree per worker ────────────────────────────────
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/run-evals.XXXXXX")"
+# evals.ts names each sandbox herdr-test-<pid>. A container whose pid is gone belongs to a run
+# that was killed; remove it so the next run starts clean. A live pid is never touched.
+sweep_dead() {
+  local names name pid
+  if [ "$RUNNER" = "container" ]; then
+    names="$("$RUNNER" ls -a 2>/dev/null | awk 'NR>1{print $1}')"
+  else
+    names="$("$RUNNER" ps -a --format '{{.Names}}' 2>/dev/null || true)"
+  fi
+  for name in $names; do
+    case "$name" in
+      herdr-test-*)
+        pid="${name#herdr-test-}"
+        case "$pid" in ''|*[!0-9]*) continue ;; esac
+        if ! kill -0 "$pid" 2>/dev/null; then
+          "$RUNNER" stop "$name" >/dev/null 2>&1 || true
+          if [ "$RUNNER" = "container" ]; then
+            "$RUNNER" delete "$name" >/dev/null 2>&1 || true
+          else
+            "$RUNNER" rm -f "$name" >/dev/null 2>&1 || true
+          fi
+        fi
+        ;;
+    esac
+  done
+}
 cleanup() {
   for wt in "$WORK"/wt-*; do
     [ -d "$wt" ] && git -C "$ROOT" worktree remove --force "$wt" >/dev/null 2>&1 || true
   done
   git -C "$ROOT" worktree prune >/dev/null 2>&1 || true
   rm -rf "$WORK"
+  sweep_dead
 }
 trap cleanup EXIT
 
