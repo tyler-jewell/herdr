@@ -55,7 +55,7 @@ async function offline(): Promise<void> {
   const notPerson = (addr: string) => /@example\.(com|org)$|^noreply@|^session-bind@openssh\.com$/.test(addr);
   const person = new RegExp(["ty", "ler|je", "well|gm", "ail\\.com"].join(""), "i");
   for (const rel of await repoFiles()) {
-    if (/^skills\/(turnkey-tk|container|herdr|ponytail)\//.test(rel) && !/(CHECKLIST|bootstrap)\.md$/.test(rel)) continue;
+    if (/^skills\/(turnkey-tk|container|herdr|ponytail)\//.test(rel) && !/bootstrap\.md$/.test(rel)) continue;
     const body = text(`${ROOT}/${rel}`).replaceAll("github.com/tyler-jewell/herdr", "").replaceAll("githubusercontent.com/tyler-jewell/herdr", "");
     if (person.test(body)) fail(`identity: ${rel} identifies a person`);
     if (/\/Users\/[A-Za-z]/.test(body)) fail(`identity: ${rel} has a home path`);

@@ -6,6 +6,26 @@ description: >
   including agentready.org. Do not use it to control Herdr panes.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | Inside a checkout | `git rev-parse --show-toplevel` | prints a path |
+| 2 | Skills directory | `test -d skills` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Source of truth | upstream package | vendor official, write from cited URLs | vendor if it exists |
+| Herdr control | skill to call | official `herdr`, none | official `herdr` |
+| Destination | `skills/<name>/` | any path | `skills/<name>/` |
+
+---
+
+
 # Author a skill
 
 A skill produced here stands on its own. It names no repository, hostname, or person. It stays valid inside a Herdr pane and outside one.

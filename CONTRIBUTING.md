@@ -27,7 +27,7 @@ Every file this repo owns opens with three lines, in its own comment syntax:
 - **Change when:** the only reasons to edit it.
 - **Not for:** what belongs elsewhere, naming that file.
 
-Markdown puts them in its first paragraph. `evals.json` puts them in its `about` field. There are two exceptions. Skill files keep their published format, though our own `CHECKLIST.md` files and `skills/herdr/bootstrap.md` carry the header. `evals.jsonl` holds rows only, and its header lives in `results.ts`. `checks.ts` enforces this.
+Markdown puts them in its first paragraph. `evals.json` puts them in its `about` field. There are two exceptions. Skill files keep their published format, though our own `skills/herdr/bootstrap.md` and `skills/run-evals/SKILL.md` carry the header. `evals.jsonl` holds rows only, and its header lives in `results.ts`. `checks.ts` enforces this.
 
 ## Integration targets
 
@@ -61,7 +61,7 @@ Use the official upstream skill when one exists, and leave its published files u
 
 To add a third-party skill, fetch it with `npx skills`, copy it into `skills/` by hand, and commit it. When no upstream skill exists, write one with `skills/author-skill/SKILL.md`, in the format of `skills/turnkey-tk`.
 
-Each skill has one `CHECKLIST.md` beside its `SKILL.md`: our live decision list for it. Update it in the same change when the skill's commands or docs change. `skills/herdr/bootstrap.md` is the questioning procedure for those checklists; change rounds, question count, or the implementation limit there. Both are our files beside upstream packages, so set them aside before running an upstream installer or update, and put them back after.
+Every skill opens with two tables before its body. **Pre-requisites** lists the checks an agent runs before using the skill; each command finishes in under five seconds. **Decisions** lists each choice, the exact field to set (a `config.toml` key, a policy field, a flag, or an argument), its options, and the default. A decision that changes no field does not belong in the table. `skills/herdr/bootstrap.md` is the questioning procedure for those tables; change rounds, question count, or the implementation limit there. Our tables are our files beside upstream packages, so set them aside before running an upstream installer or update, and put them back after.
 
 ## Scripts
 

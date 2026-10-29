@@ -131,3 +131,14 @@ export function heatmapSvg(rows: EvalRow[], metrics: Metric[], capabilities: Cap
   parts.push(`<text x="${left + gap}" y="${height - 14}" font-size="11" fill="#57606a">One row per commit, newest first. Empty: not exercised. Rendered from evals.jsonl.</text>`, "</svg>", "");
   return parts.join("\n");
 }
+
+// Run as a script after a batch of rows is merged: rewrite the README block and results.svg.
+if (import.meta.main) {
+  const { ROOT } = await import("./lib.ts");
+  const { capabilityDefs, evalRows, latestPerCommit, metricDefs } = await import("./results.ts");
+  const rows = latestPerCommit(evalRows());
+  const readme = await Deno.readTextFile(`${ROOT}/README.md`);
+  await Deno.writeTextFile(`${ROOT}/README.md`, readmeWithBlock(readme, readmeBlock(rows, metricDefs(), capabilityDefs())));
+  await Deno.writeTextFile(`${ROOT}/results.svg`, heatmapSvg(rows, metricDefs(), capabilityDefs()));
+  console.log(`rendered ${rows.length} row(s) from evals.jsonl`);
+}

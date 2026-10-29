@@ -3,6 +3,30 @@ name: container
 description: Use when running, building, or managing Linux containers on macOS, or when a task involves Docker, docker compose, Lima, Colima, or Podman commands on a Mac, Dockerfiles, OCI images, image registries, or setting up a Linux development environment on Apple silicon.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | Apple silicon, macOS 26+ | `uname -sm` | `Darwin arm64` |
+| 2 | CLI present | `command -v container` | prints a path |
+| 3 | Service up | `container system status` | `status running` |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Workload shape | `Containerfile` base | application container, machine, cluster | application container |
+| User | `container run --user` | `1000:1000`, root | `1000:1000` |
+| Root filesystem | `container run --read-only` | on, off | on |
+| Mounts | `container run --tmpfs` | tmpfs only, bind mounts | tmpfs only |
+| Secrets | injection path | `tk` ephemeral, host home | `tk` ephemeral |
+| Cleanup | `container stop` + `container delete` | stop+delete+prune, leave | stop+delete+prune |
+
+---
+
+
 # container
 
 `container` runs Linux containers on macOS (Apple silicon, macOS 26+), replacing Docker, Lima,

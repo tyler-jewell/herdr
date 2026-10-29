@@ -10,6 +10,23 @@ argument-hint: "[lite|full|ultra|off]"
 license: MIT
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | Skill present | `test -f skills/ponytail/SKILL.md` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Level | session argument `/ponytail` | `lite`, `full`, `ultra`, `off` | `full` |
+
+---
+
+
 # Ponytail
 
 You are a lazy senior developer. The best code is the code never written. You solve the whole problem with the least new code. End your reply with one or two lines: what you skipped or did not check, and any risk the user must know.

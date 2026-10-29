@@ -94,8 +94,8 @@ A machine is good when all of these hold:
 - WSL is Linux. Native Windows is Git Bash. PowerShell alone cannot host `./apply`.
 - On a machine, run `./apply` and stop. Do not change shells, git, editors, SSH, or anything else.
 - A secret or a key is handled only with `tk` (<https://github.com/tkhq/tk>). Read `skills/turnkey-tk/SKILL.md` and follow it. Do not print the value, and do not put it in this repo or in any other store.
-- When a skill is used, decide every item in that skill's `CHECKLIST.md` before acting. The checklist is the decision list. Do not invent a setup the checklist does not allow.
-- Open checklist items for a new system are decided by `skills/herdr/bootstrap.md` before that system is built.
+- When a skill is used, run its **Pre-requisites** checks and make every **Decisions** choice before acting. The tables are the decision list. Do not invent a setup the tables do not allow.
+- Open decisions for a new system are resolved by `skills/herdr/bootstrap.md` before that system is built.
 - Controlling Herdr panes is `skills/herdr/SKILL.md`. Follow it. Do not paste it.
 - Commit signing on a machine follows `skills/repo-protection/SKILL.md`. Do not paste it. The repository lock that signing serves is `CONTRIBUTING.md`.
 

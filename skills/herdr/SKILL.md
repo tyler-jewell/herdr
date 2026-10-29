@@ -3,6 +3,30 @@ name: herdr
 description: "Control Herdr, a terminal multiplexer for coding agents. Use only when the user explicitly mentions Herdr or asks to use Herdr to inspect or control panes, tabs, workspaces, commands, or another agent. Do not use merely because a task could benefit from a background terminal, delegation, or parallel work. Requires HERDR_ENV=1."
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | Inside a Herdr pane | `test "${HERDR_ENV:-}" = 1` | exit 0 |
+| 2 | CLI present | `command -v herdr` | prints a path |
+| 3 | Server status | `herdr status server --json` | `"running":true` |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Worktree root | `config.toml` `[worktrees].directory` | any path | `~/.herdr/worktrees` |
+| New pane cwd | `config.toml` `[terminal].new_cwd` | `follow`, `home` | `follow` |
+| Prefix key | `config.toml` `[keys].prefix` | any chord | `ctrl+b` |
+| Theme | `config.toml` `[theme].name` | any installed theme | `catppuccin` |
+| Pane borders | `config.toml` `[ui].pane_borders` | `always`, `focused`, `never` | `always` |
+| SSH config | `config.toml` `[remote].manage_ssh_config` | `true`, `false` | `true` |
+
+---
+
+
 # Herdr
 
 Herdr organizes terminals into workspaces, tabs, and panes, recognizes coding agents running inside panes, and exposes the current session through the `herdr` CLI.

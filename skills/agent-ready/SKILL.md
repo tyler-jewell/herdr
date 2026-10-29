@@ -6,6 +6,26 @@ description: >
   not a substitute for an official skill the subject publishes.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | Deno installed | `deno --version` | prints a version |
+| 2 | Inside a checkout | `git rev-parse --show-toplevel` | prints a path |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| Entry language | file extension | `.ts`, `.sh`, `.py` | `.ts` |
+| After the basics | handoff prompt | explicit prompt, log line, nothing | explicit prompt |
+| Official skill | source | vendor official, ours | vendor if it exists |
+
+---
+
+
 # Agent-ready entry
 
 An agent needs one command it can run. That command is one TypeScript file. There is no official AgentReady skill. The standard is the site and the spec it names.

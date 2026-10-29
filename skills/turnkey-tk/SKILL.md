@@ -3,6 +3,28 @@ name: turnkey-tk
 description: Set up and operate Turnkey agent authorization with the tk CLI: root and agent identities, tags, policies, approvals, secrets, expiring session keys, SSH, Git signing, inspection, and deployment beside an agent. Use for any request about who may act on Turnkey and how an unattended agent authenticates, signs, or renews its credential; not for wallets, chain signing, or broadcasting.
 ---
 
+> **Pre-requisites** and **Decisions** are this repo's. The rest is the published skill.
+
+## Pre-requisites
+
+| # | Check | Command | Pass |
+|---|---|---|---|
+| 1 | `tk` present | `command -v tk` | prints a path |
+| 2 | Command groups load | `tk --help` | exit 0 |
+| 3 | Skill package present | `test -f turnkey-tk.json` | exit 0 |
+
+## Decisions
+
+| Decision | Field | Options | Default |
+|---|---|---|---|
+| In scope | session answer | yes, no | per request |
+| Credential route | Turnkey policy | session keys, long-lived key, none | session keys |
+| Approval model | Turnkey policy `consensus` | unilateral, human approval | human approval |
+| Signing authority | Turnkey tag/policy | broker, agent, none | broker |
+
+---
+
+
 # Turnkey `tk` workflows
 
 `tk` is the CLI for agent authorization on Turnkey: named profiles holding

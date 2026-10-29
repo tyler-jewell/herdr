@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1194" height="246" viewBox="0 0 1194 246" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-label="Every score and metric per commit">
+<!-- Purpose: the results heatmap shown in README.md. Change when: never by hand; render.ts writes it. Not for: anything else. -->
+<rect width="1194" height="246" fill="#ffffff"/>
+<text x="89" y="22" font-size="11" fill="#57606a">capabilities: judge 1-10</text>
+<text x="661" y="22" font-size="11" fill="#57606a">metrics: green is the best commit</text>
+<text transform="translate(112,142) rotate(-50)" font-size="11" fill="#24292f">Score</text>
+<text transform="translate(164,142) rotate(-50)" font-size="11" fill="#24292f">Instruction following</text>
+<text transform="translate(216,142) rotate(-50)" font-size="11" fill="#24292f">Context gathering</text>
+<text transform="translate(268,142) rotate(-50)" font-size="11" fill="#24292f">Boundaries</text>
+<text transform="translate(320,142) rotate(-50)" font-size="11" fill="#24292f">Communication</text>
+<text transform="translate(372,142) rotate(-50)" font-size="11" fill="#24292f">Skill use</text>
+<text transform="translate(424,142) rotate(-50)" font-size="11" fill="#24292f">Planning</text>
+<text transform="translate(476,142) rotate(-50)" font-size="11" fill="#24292f">Tool use</text>
+<text transform="translate(528,142) rotate(-50)" font-size="11" fill="#24292f">Implementation</text>
+<text transform="translate(580,142) rotate(-50)" font-size="11" fill="#24292f">Verification</text>
+<text transform="translate(632,142) rotate(-50)" font-size="11" fill="#24292f">Orchestration</text>
+<text transform="translate(684,142) rotate(-50)" font-size="11" fill="#24292f">Wall time</text>
+<text transform="translate(736,142) rotate(-50)" font-size="11" fill="#24292f">Time to first action</text>
+<text transform="translate(788,142) rotate(-50)" font-size="11" fill="#24292f">Turns</text>
+<text transform="translate(840,142) rotate(-50)" font-size="11" fill="#24292f">Tool calls</text>
+<text transform="translate(892,142) rotate(-50)" font-size="11" fill="#24292f">Failed tool calls</text>
+<text transform="translate(944,142) rotate(-50)" font-size="11" fill="#24292f">Repeated tool calls</text>
+<text transform="translate(996,142) rotate(-50)" font-size="11" fill="#24292f">Input tokens</text>
+<text transform="translate(1048,142) rotate(-50)" font-size="11" fill="#24292f">Output tokens</text>
+<text transform="translate(1100,142) rotate(-50)" font-size="11" fill="#24292f">Compactions</text>
+<text transform="translate(1152,142) rotate(-50)" font-size="11" fill="#24292f">Files changed</text>
+<text x="86" y="180" font-size="12" fill="#57606a">No scored runs yet.</text>
+<text x="89" y="232" font-size="11" fill="#57606a">One row per commit, newest first. Empty: not exercised. Rendered from evals.jsonl.</text>
+</svg>

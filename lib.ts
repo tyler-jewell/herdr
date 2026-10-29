@@ -104,15 +104,16 @@ export async function repoFiles(): Promise<string[]> {
 }
 
 // The files that must carry a Purpose / Change when / Not for header: every repo file except skill files
-// (which keep their published format) and the results rows. Under skills/, only our CHECKLIST.md and
-// bootstrap.md files count.
+// (which keep their published format) and the results rows. Under skills/, only our bootstrap.md and the
+// run-evals skill count.
 export async function ownedFiles(): Promise<string[]> {
   const files = await repoFiles();
-  const upstream = /^skills\/(?!.*\/(CHECKLIST\.md|bootstrap\.md)$)/;
+  const ours = /^skills\/(?:herdr\/bootstrap\.md|run-evals\/SKILL\.md)$/;
   const exempt = new Set(["evals.jsonl"]);
   const kept: string[] = [];
   for (const rel of files) {
-    if (upstream.test(rel) || exempt.has(rel) || !await exists(`${ROOT}/${rel}`)) continue;
+    if (rel.startsWith("skills/") && !ours.test(rel)) continue;
+    if (exempt.has(rel) || !await exists(`${ROOT}/${rel}`)) continue;
     kept.push(rel);
   }
   return kept;

@@ -63,5 +63,5 @@ flowchart LR
 | `results.ts` | Result rows, metrics, and validation. |
 | `render.ts` | Draws the results block and `results.svg`. |
 | `lib.ts` | Helpers shared by the scripts. |
-| `skills/` | The skills agents use, each with our `CHECKLIST.md` of decisions. |
+| `skills/` | The skills agents use, each opening with our Pre-requisites and Decisions tables. |
 | `.github/workflows/test.yml` | Runs `./evals.ts` on every push. |
