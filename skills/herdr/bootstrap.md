@@ -19,7 +19,7 @@ Stand up a system from the skills in this repo. Decide first. Implement after th
 
 Do this before round 1, and again after each round's answers are written.
 
-Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `config/config.toml`, `apply`, `sandbox/Containerfile`, `evals.ts`, `AGENTS.md`, and `CONTRIBUTING.md`.
+Read the machine, then this repo. On the machine, run only the commands and read only the files the checklists name, plus `AGENTS.md` for whether the machine is good. Do not set a test override. Do not print a secret. In this repo, read `config.toml`, `apply`, `sandbox/Containerfile`, `evals.ts`, `AGENTS.md`, and `CONTRIBUTING.md`.
 
 An item is already answered only when that evidence forces one of its choices, or the item itself names that choice as the current setup. Under the question, write `answered: ` and the choice text. Leave the other choices. An item that already has an `answered:` line stays closed. Anything else stays open. One forced choice, or it stays open.
 

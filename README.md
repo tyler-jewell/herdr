@@ -20,7 +20,7 @@ flowchart TB
     agents[agent detection]
   end
   subgraph wrap [this repo]
-    toml[config/config.toml]
+    toml[config.toml]
     apply[apply copies one file]
   end
   toml --> apply --> cfg[machine config.toml]
@@ -31,7 +31,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  src[config/config.toml]
+  src[config.toml]
   apply[apply]
   mac[macOS]
   linux[Linux and WSL]
@@ -153,7 +153,7 @@ Local Volumes  0      0       0 B       0 B (0%)
 
 ## Defaults
 
-One file, `config/config.toml`, on top of Herdr. Anything unset stays core behavior: <https://herdr.dev/docs/>.
+One file, `config.toml`, on top of Herdr. Anything unset stays core behavior: <https://herdr.dev/docs/>.
 
 - No onboarding. Headless panes are 160×50.
 - Login shells. Worktrees at `~/.herdr/worktrees`.
@@ -176,8 +176,8 @@ Live file: `~/.config/herdr/config.toml`, or `%APPDATA%\herdr\config.toml` on Wi
 | Path | Role |
 | --- | --- |
 | `setup.ts` | Runs `apply`, then prints the `/bootstrap` prompt. |
-| `apply` | Copies `config/config.toml`. Prints one JSON report. |
-| `config/config.toml` | The wrapper. `herdr-setup` matches `SETUP_VERSION` in `apply`. |
+| `apply` | Copies `config.toml`. Prints one JSON report. |
+| `config.toml` | The wrapper. `herdr-setup` matches `SETUP_VERSION` in `apply`. |
 | `AGENTS.md` | How an agent sets a machine up. |
 | `CONTRIBUTING.md` | How a change is made. |
 | `skills/` | `ponytail` is required. `turnkey-tk` stays the upstream package. `repo-protection` is the lock. |

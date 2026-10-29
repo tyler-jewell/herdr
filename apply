@@ -7,7 +7,7 @@ set -u
 
 ROOT=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 SETUP_VERSION=1
-SRC="$ROOT/config/config.toml"
+SRC="$ROOT/config.toml"
 
 OS=${HERDR_SETUP_OS:-$(uname -s)}
 HOME_DIR=${HERDR_SETUP_HOME:-$HOME}
@@ -118,8 +118,8 @@ if [ ! -f "$SRC" ]; then
 fi
 
 if ! grep -q "herdr-setup: $SETUP_VERSION" "$SRC"; then
-  message="config/config.toml is not stamped herdr-setup: $SETUP_VERSION."
-  next="Bump the stamp in config/config.toml and SETUP_VERSION in apply together. Refusing to write a config this script does not claim."
+  message="config.toml is not stamped herdr-setup: $SETUP_VERSION."
+  next="Bump the stamp in config.toml and SETUP_VERSION in apply together. Refusing to write a config this script does not claim."
   finish
 fi
 

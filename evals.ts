@@ -855,7 +855,7 @@ try {
 
   if (!has(`${ROOT}/CONTRIBUTING.md`, "This repo does not identify a person")) fail("identity: CONTRIBUTING.md does not forbid personal information");
   const scanned = [
-    "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config/config.toml",
+    "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config.toml",
     "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox/Containerfile", "evals.ts",
     ".github/workflows/test.yml",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
@@ -994,7 +994,7 @@ try {
   assertStatus(code, 0, `${tmp}/fresh.json`, "fresh", "applied");
   if (!has(`${tmp}/fresh.json`, '"changed": true')) fail("fresh: expected changed true");
   if (!has(`${tmp}/fresh/.config/herdr/config.toml`, "herdr-setup: 1")) fail("fresh: stamp missing");
-  if (!await sameBytes(`${ROOT}/config/config.toml`, `${tmp}/fresh/.config/herdr/config.toml`)) fail("fresh: config bytes differ");
+  if (!await sameBytes(`${ROOT}/config.toml`, `${tmp}/fresh/.config/herdr/config.toml`)) fail("fresh: config bytes differ");
   ok("fresh");
 
   code = await runApply(`${tmp}/fresh`, "Darwin", `${tmp}/again.json`);
@@ -1009,7 +1009,7 @@ try {
   code = await runApply(`${tmp}/fresh`, "Darwin", `${tmp}/drift.json`);
   assertStatus(code, 0, `${tmp}/drift.json`, "drift", "applied");
   if (!has(`${tmp}/drift.json`, '"changed": true')) fail("drift: expected changed true");
-  if (!await sameBytes(`${ROOT}/config/config.toml`, `${tmp}/fresh/.config/herdr/config.toml`)) fail("drift: config was not replaced");
+  if (!await sameBytes(`${ROOT}/config.toml`, `${tmp}/fresh/.config/herdr/config.toml`)) fail("drift: config was not replaced");
   const bak = await findPaths(`${tmp}/fresh/.config/herdr`, (_p, name) => name.startsWith("config.toml.bak."));
   if (!bak.length) fail("drift: missing backup");
   if (!has(bak[0], "onboarding = true")) fail("drift: backup lost the old config");
@@ -1049,11 +1049,11 @@ try {
   });
   assertStatus(code, 2, `${tmp}/noherdr.json`, "installer", "partial");
   if (!has(`${tmp}/noherdr.json`, "installer-broke")) fail("installer: log missing from report");
-  if (!await sameBytes(`${ROOT}/config/config.toml`, `${tmp}/noherdr/.config/herdr/config.toml`)) fail("installer: config was not written");
+  if (!await sameBytes(`${ROOT}/config.toml`, `${tmp}/noherdr/.config/herdr/config.toml`)) fail("installer: config was not written");
   ok("installer");
 
   const ver = text(`${ROOT}/apply`).match(/^SETUP_VERSION=(.*)$/m)?.[1] ?? "";
-  if (!has(`${ROOT}/config/config.toml`, `herdr-setup: ${ver}`)) fail(`stamp: config stamp does not match SETUP_VERSION ${ver}`);
+  if (!has(`${ROOT}/config.toml`, `herdr-setup: ${ver}`)) fail(`stamp: config stamp does not match SETUP_VERSION ${ver}`);
   ok("stamp");
 
   if (Deno.env.get("HERDR_SANDBOX") !== "1") fail("live: refused outside the sandbox");
@@ -1087,7 +1087,7 @@ try {
   await writeOut(`${tmp}/live.err`, live.stderr);
   assertStatus(live.code, 0, `${tmp}/live.json`, "live", "applied");
   if (!has(`${tmp}/live.json`, '"install": "installed"')) fail("live: Herdr was not installed");
-  if (!await sameBytes(`${ROOT}/config/config.toml`, `${home}/.config/herdr/config.toml`)) fail("live: installed config is not the repo file");
+  if (!await sameBytes(`${ROOT}/config.toml`, `${home}/.config/herdr/config.toml`)) fail("live: installed config is not the repo file");
   const version = await command("herdr", ["--version"], { env: liveEnv });
   if (version.code !== 0) fail("live: herdr --version failed");
   ok("live-apply");

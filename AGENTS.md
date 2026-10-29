@@ -30,8 +30,8 @@ A machine is good when all of these hold:
 
 - `./apply` exits `0`.
 - `status` is `applied`.
-- `setup_version` matches `SETUP_VERSION` in `apply` and the `herdr-setup:` stamp in `config/config.toml`.
-- The file at `config_path` is byte-for-byte the repo's `config/config.toml`.
+- `setup_version` matches `SETUP_VERSION` in `apply` and the `herdr-setup:` stamp in `config.toml`.
+- The file at `config_path` is byte-for-byte the repo's `config.toml`.
 - `reload` is `reloaded`, or there is no Herdr server running yet. If `reload` is `failed`, the file is right and a live session may be stale. Follow `next`.
 
 `exit 0` means the file on disk is this setup. It does not mean a server that was already running has loaded it, unless `reload` is `reloaded`.

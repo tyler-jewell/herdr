@@ -23,7 +23,7 @@ An upstream skill stays as that project published it. Do not add a person to it.
 ## Goals
 
 1. One script, `apply`, works on macOS, Linux, and Windows Git Bash. An OS it cannot handle exits with `status: failed` and a `next` step. It does not write a guessed path.
-2. One config, `config/config.toml`. Machines converge by copying that file. They do not merge.
+2. One config, `config.toml`. Machines converge by copying that file. They do not merge.
 3. `./apply` is idempotent. A second run on a good machine reports `changed: false` and writes no backup.
 4. Replacing a different existing config always keeps a backup first. If the backup cannot be written, the live file stays.
 5. Failure and partial success always print the JSON report, including `next`.
@@ -67,8 +67,8 @@ Script in TypeScript. Follow `skills/agent-ready/SKILL.md`. Do not add a Python 
 
 ## Required for every change
 
-- Behavior changes land in `apply` or `config/config.toml`, not in a side path.
-- When the applied config's meaning changes, bump `SETUP_VERSION` in `apply` and the `herdr-setup:` line in `config/config.toml` together. Old machines stay identifiable until they apply.
+- Behavior changes land in `apply` or `config.toml`, not in a side path.
+- When the applied config's meaning changes, bump `SETUP_VERSION` in `apply` and the `herdr-setup:` line in `config.toml` together. Old machines stay identifiable until they apply.
 - Keys must be real Herdr config keys from <https://herdr.dev/docs/config-reference/>. Do not invent keys. Herdr silently falls back on invalid values and the machine looks configured when it is not.
 - `skills/container` is the official Apple container skill from `apple/container`, including its references. Do not replace it with a rewrite. `evals.ts` checks that it is there. The independent reviewer reads it when a change touches the container runtime. Container commands stay the ones that skill lists.
 - `skills/turnkey-tk` is the tk 0.7.0 package from `tk skills install --into skills` (<https://github.com/tkhq/tk>). Leave the files the installer wrote, including `turnkey-tk.json`. Do not add another way to handle secrets or keys. `evals.ts` checks this.
