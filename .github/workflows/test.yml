@@ -1,5 +1,5 @@
-# Purpose: run ./evals.ts on every push: macos on the self-hosted studio, linux on hosted Ubuntu as the
-#   backup, so a public push still has a result when the studio is offline.
+# Purpose: run ./evals.ts on every push: macos on the self-hosted Mac runner, linux on hosted Ubuntu as the
+#   backup, so a public push still has a result when that runner is offline.
 # Change when: a runner, a pinned action, or the eval command changes.
 # Not for: what is checked (checks.ts). The agent eval is local only and never runs here.
 name: test
