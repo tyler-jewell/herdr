@@ -4,15 +4,45 @@
 ![tests run](badges/tests.svg)
 ![test seconds](badges/time.svg)
 
-A bare-bones starter harness for [Herdr](https://herdr.dev): the same panes, keys, theme, worktrees, and sidebar on the next computer. This repo is that config and the script that copies it. It does not ship the Herdr binary.
+Thin opinionated setup on [Herdr](https://herdr.dev) core. Same config for every agent, every project, every computer.
 
 ```text
 deno run --allow-run --allow-read --allow-write --allow-net setup.ts
 ```
 
-`deno` must be on `PATH`. From a checkout, that runs `./apply`, then prints one JSON object. The `prompt` field is the required `/bootstrap` text. The script does not start an agent.
+That runs `./apply` and prints a `/bootstrap` prompt. It does not start an agent or ship the Herdr binary.
 
-`./test.ts` rewrites the status block and the pills below. That block is the last local test, not a step you must pass before setup. Do not edit it by hand.
+```mermaid
+flowchart TB
+  subgraph core [Herdr core]
+    server[session server]
+    panes[workspaces tabs panes]
+    agents[agent detection]
+  end
+  subgraph wrap [this repo]
+    toml[config/config.toml]
+    apply[apply copies one file]
+  end
+  toml --> apply --> cfg[machine config.toml]
+  cfg --> server
+  panes --> project[any project]
+  agents --> agent[any agent]
+```
+
+```mermaid
+flowchart LR
+  src[config/config.toml]
+  apply[apply]
+  mac[macOS]
+  linux[Linux and WSL]
+  win[Windows Git Bash]
+  src --> apply
+  apply --> mac
+  apply --> linux
+  apply --> win
+```
+
+`./test.ts` rewrites the block and the pills below. Do not edit them by hand.
 
 <!-- status:start -->
 ## Status
@@ -21,8 +51,8 @@ deno run --allow-run --allow-read --allow-write --allow-net setup.ts
 | --- | --- |
 | result | pass |
 | cases | 32 |
-| seconds | 19 |
-| revision | 3678409+ |
+| seconds | 17 |
+| revision | aa32ba5+ |
 | setup | 1 |
 
 ### Harness
@@ -37,10 +67,10 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | --- | --- | --- | --- | --- |
 | 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
-| 0s | run | image-build | start | herdr-sandbox |
+| 1s | run | image-build | start | herdr-sandbox |
 | 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-16917 |
-| 3s | run | container | ok | herdr-test-16917 |
+| 2s | run | container | start | herdr-test-17423 |
+| 3s | run | container | ok | herdr-test-17423 |
 | 5s | check | arch | ok |  |
 | 5s | check | events | ok |  |
 | 5s | check | skill | ok |  |
@@ -68,23 +98,23 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 5s | check | installer | ok |  |
 | 5s | check | stamp | ok |  |
 | 17s | check | live-apply | ok |  |
-| 19s | check | live-config | ok |  |
-| 19s | check | live-agents | ok |  |
-| 19s | check | live-core | ok |  |
-| 19s | check | live-worktree | ok |  |
-| 19s | check | live-stop | ok |  |
-| 19s | result | suite | pass |  |
+| 17s | check | live-config | ok |  |
+| 17s | check | live-agents | ok |  |
+| 17s | check | live-core | ok |  |
+| 17s | check | live-worktree | ok |  |
+| 17s | check | live-stop | ok |  |
+| 17s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-16917
-memory 146.0 MiB / 1024.0 MiB
-cpu_usec 1430195
+container herdr-test-17423
+memory 145.3 MiB / 1024.0 MiB
+cpu_usec 1262121
 pids 2
-net_rx 29963764
-net_tx 300659
-block_read 120872960
+net_rx 29963646
+net_tx 278648
+block_read 120610816
 block_write 0
 ```
 
@@ -108,71 +138,40 @@ Local Volumes  0      0       0 B      0 B (0%)
 | grok-4.7 | cloud | A |
 <!-- status:end -->
 
-## Highlights
+## Defaults
 
-- No first-run onboarding wizard.
-- Headless agent panes are 160×50.
-- Login shells, so PATH is the normal one.
-- Git worktrees under `~/.herdr/worktrees`.
-- Prefix `ctrl+b`, plus ctrl+alt focus, tabs, splits, and zoom.
-- Catppuccin, following the terminal light/dark appearance.
-- Sidebar shows machine, workspace, tab, agent, and state. Toasts still show over SSH.
+One file, `config/config.toml`, on top of Herdr. Anything unset stays core behavior: <https://herdr.dev/docs/>.
 
-## Try it
+- No onboarding. Headless panes are 160×50.
+- Login shells. Worktrees at `~/.herdr/worktrees`.
+- Prefix `ctrl+b`, plus the ctrl+alt chords.
+- Catppuccin, following light and dark.
+- Sidebar: machine, workspace, tab, agent, state. Toasts still show over SSH.
 
-macOS, Linux, Windows Git Bash, or WSL. WSL is Linux. PowerShell alone cannot host `./apply`. The raw URL of `setup.ts` (`https://raw.githubusercontent.com/<owner>/<repo>/<ref>/setup.ts`) shallow-clones that ref to `~/.herdr/harness` when `apply` is not already beside the script. That path needs `git` on `PATH`.
+## Apply
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | The config file on disk is this setup. A server that was already running has loaded it only when `reload` is `reloaded`. |
-| `2` | The file is in place and Herdr is missing. Install from <https://herdr.dev/docs/install/> and run `./apply` again. Do not rewrite the config while doing that. |
-| `1` | Not applied. Do what `next` says. |
+| `0` | The file matches. A running server has loaded it only when `reload` is `reloaded`. |
+| `2` | The file is in place. Install Herdr from <https://herdr.dev/docs/install/>, then `./apply`. Do not rewrite the config. |
+| `1` | Follow `next`. |
 
-Run `./apply` a second time on a good machine. `changed` is false and `backup_path` is null.
-
-Do not hand-edit `~/.config/herdr/config.toml` (or `%APPDATA%\herdr\config.toml` on Windows). The next `./apply` replaces it. Do not reinstall Herdr when `install` is already `present`.
-
-## Defaults
-
-`config/config.toml` (`herdr-setup: 1`) is a small override, not a dump of every Herdr default. The same file lands on every machine.
-
-| You see | Why |
-| --- | --- |
-| No first-run onboarding | The file is the setup. A wizard would diverge per computer. |
-| Agent panes with no client are 160×50 | A headless session still gets a wide terminal. |
-| Login shells; a new pane follows the current directory | PATH stays normal, including macOS `path_helper` and Homebrew. |
-| Git worktrees under `~/.herdr/worktrees` | Every machine puts worktrees in the same directory. |
-| SSH keepalive and connection reuse for `herdr --remote` | Herdr keeps a private SSH config for that. It is not a shared list of hosts. |
-| Prefix `ctrl+b`, plus ctrl+alt focus (`h` `j` `k` `l`), tabs, splits, and zoom | The prefix keeps the tmux habit. The ctrl+alt chords are the set Herdr documents as safe across terminals. |
-| Catppuccin, following light (`catppuccin-latte`) and dark | One theme, matching the terminal appearance. |
-| Borders always on, status as symbols, title `{hostname}: {workspace}` | You can see which machine and workspace you are in. |
-| Sidebar: state, machine, workspace, tab, then agent and state | The headline states are working, blocked, and done. The sidebar can also show idle and unknown. |
-| In-app toasts, bottom-right, after 1s | They still show over SSH. |
-
-Anything this file does not set is product behavior: <https://herdr.dev/docs/> and <https://herdr.dev/agent-guide.md>.
+Live file: `~/.config/herdr/config.toml`, or `%APPDATA%\herdr\config.toml` on Windows. Do not hand-edit it.
 
 ## Map
 
-Open the file that matches the job.
-
 | Path | Role |
 | --- | --- |
-| `setup.ts` | The one public script. Runs `apply`, then hands an agent `/bootstrap`. |
-| `apply` | Copies `config/config.toml` onto the machine. Prints one JSON report. |
-| `config/config.toml` | The config `apply` copies. The `herdr-setup` stamp must match `SETUP_VERSION` in `apply`. |
-| `AGENTS.md` | How an agent sets a machine up. Read this README first for current status. |
-| `CONTRIBUTING.md` | Rules for changing the setup. No personal information in the repo. |
-| `test.ts` | The only test. `./test.ts` (`macos`) uses an Apple container. `./test.ts linux` uses Docker. It rewrites the status block and the pills. |
-| `.github/workflows/test.yml` | `macos` on the self-hosted `mac-studio` runner. `linux` on `ubuntu-latest`. |
-| `agents/independent-reviewer.md` | Reviews a change, or scores an agent run. |
-| `evals/results.json` | Score source. `agents/models.md` and `badges/evals.svg` are rendered from it. |
-| `skills/` | One directory per tool. `skills/turnkey-tk` is the upstream tk package, left as published. `skills/ponytail` is required for every change. `skills/repo-protection` is the repository lock and commit signing. |
-| `badges/` | Pills for the last local test: result, cases, seconds. |
+| `setup.ts` | Runs `apply`, then prints the `/bootstrap` prompt. |
+| `apply` | Copies `config/config.toml`. Prints one JSON report. |
+| `config/config.toml` | The wrapper. `herdr-setup` matches `SETUP_VERSION` in `apply`. |
+| `AGENTS.md` | How an agent sets a machine up. |
+| `CONTRIBUTING.md` | How a change is made. |
+| `skills/` | `ponytail` is required. `turnkey-tk` stays the upstream package. `repo-protection` is the lock. |
 
-## Change it
+`./test.ts` is the only test. It rewrites this status block.
 
-1. Change `config/config.toml`, bump `SETUP_VERSION` in `apply` and the `herdr-setup` stamp together, then run `./apply`. Do not edit the live file.
-2. Run `./test.ts` before sending a change. `deno` must be on `PATH`. The report stays in four sections even when the test fails.
-3. Do not hand-edit the live config. Do not reinstall Herdr when `install` is already `present`.
-4. Push a branch. GitHub rejects unsigned commits, force-push, and a direct push to `main`. Merge after the linux and macos checks pass.
-5. Secrets go through `tk` only. Do not put a key in the repo.
+## Changes
+
+- Bump `SETUP_VERSION` and the `herdr-setup` stamp together.
+- Push a branch. No direct push to `main`. Secrets go through `tk` only.
