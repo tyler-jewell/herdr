@@ -282,6 +282,89 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     return diskSafe ? `${line}\n\n${diskSafe}` : line;
   }
 
+  type Score = { model: string; where: string; grade: string };
+  type EvalItem = { id: string; prompt?: string; scores: Score[] };
+  type Domain = { id: string; evals: EvalItem[] };
+  type Catalog = { overview?: string; domains: Domain[] };
+
+  function catalog(): Catalog {
+    return JSON.parse(text(`${ROOT}/evals/results.json`)) as Catalog;
+  }
+
+  function gradeGrid(data: Catalog): { columns: string[]; models: string[]; where: Map<string, string>; cell: Map<string, string> } {
+    const columns: string[] = [];
+    const models: string[] = [];
+    const where = new Map<string, string>();
+    const cell = new Map<string, string>();
+    for (const domain of data.domains) {
+      for (const item of domain.evals) {
+        const column = `${domain.id}/${item.id}`;
+        columns.push(column);
+        for (const score of item.scores) {
+          if (!models.includes(score.model)) models.push(score.model);
+          where.set(score.model, score.where);
+          cell.set(`${score.model}|${column}`, score.grade);
+        }
+      }
+    }
+    return { columns, models, where, cell };
+  }
+
+  function renderModels(data: Catalog): string {
+    const grid = gradeGrid(data);
+    const head = ["model", "where", ...grid.columns];
+    const lines = [
+      "# Models",
+      "",
+      "Rendered from `evals/results.json` by `./test.ts`. Do not edit this table by hand.",
+      "",
+      "The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.",
+      "",
+      `| ${head.join(" | ")} |`,
+      `| ${head.map(() => "---").join(" | ")} |`,
+    ];
+    for (const model of grid.models) {
+      const grades = grid.columns.map((column) => grid.cell.get(`${model}|${column}`) ?? "");
+      lines.push(`| ${model} | ${grid.where.get(model) ?? ""} | ${grades.join(" | ")} |`);
+    }
+    lines.push("");
+    return lines.join("\n");
+  }
+
+  function xml(value: string): string {
+    return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
+  function heatmap(data: Catalog): string {
+    const grid = gradeGrid(data);
+    const fill: Record<string, string> = { A: "#1a7f37", B: "#4c9a2a", C: "#9a6700", D: "#bc4c00", F: "#cf222e" };
+    const labelW = 300;
+    const cellW = 150;
+    const cellH = 28;
+    const headH = 22;
+    const width = labelW + Math.max(grid.columns.length, 1) * cellW;
+    const height = headH + grid.models.length * cellH + 32;
+    const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" role="img" aria-label="capability heatmap">`];
+    parts.push(`<rect width="${width}" height="${height}" fill="#fff"/>`);
+    grid.columns.forEach((column, i) => {
+      parts.push(`<text x="${labelW + i * cellW + 8}" y="16" font-family="Verdana,sans-serif" font-size="11" fill="#24292f">${xml(column)}</text>`);
+    });
+    grid.models.forEach((model, r) => {
+      const y = headH + r * cellH;
+      parts.push(`<text x="8" y="${y + 18}" font-family="Verdana,sans-serif" font-size="11" fill="#24292f">${xml(model)}</text>`);
+      grid.columns.forEach((column, c) => {
+        const grade = grid.cell.get(`${model}|${column}`) ?? "";
+        const color = fill[grade] ?? "#eaeef2";
+        const ink = grade ? "#fff" : "#57606a";
+        parts.push(`<rect x="${labelW + c * cellW}" y="${y}" width="${cellW - 6}" height="${cellH - 4}" rx="3" fill="${color}"/>`);
+        parts.push(`<text x="${labelW + c * cellW + (cellW - 6) / 2}" y="${y + 17}" text-anchor="middle" font-family="Verdana,sans-serif" font-size="12" fill="${ink}">${xml(grade || "—")}</text>`);
+      });
+    });
+    parts.push(`<text x="8" y="${height - 8}" font-family="Verdana,sans-serif" font-size="11" fill="#57606a">A B C D F, darker is better. Empty is not scored.</text>`);
+    parts.push("</svg>");
+    return parts.join("\n");
+  }
+
   function gradeTable(): string {
     try {
       const rows = text(`${ROOT}/agents/models.md`).split("\n").filter((line) => line.startsWith("|"));
@@ -302,6 +385,13 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       `| cases | ${cases} |`,
       `| seconds | ${seconds} |`,
       `| revision | ${pillRev} |`,
+      `| setup | ${text(`${ROOT}/apply`).match(/^SETUP_VERSION=(.*)$/m)?.[1] ?? "unknown"} |`,
+      "",
+      "### Harness",
+      "",
+      catalog().overview ?? "",
+      "",
+      "![capability heatmap](badges/evals.svg)",
       "",
       "### Progress",
       "",
@@ -340,6 +430,10 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   }
 
   async function writeStatus(result: string, cases: number, seconds: number, memBody: string, sysBody: string): Promise<void> {
+    const data = catalog();
+    await Deno.mkdir(`${ROOT}/badges`, { recursive: true });
+    await Deno.writeTextFile(`${ROOT}/agents/models.md`, renderModels(data));
+    await Deno.writeTextFile(`${ROOT}/badges/evals.svg`, heatmap(data));
     const eventsBody = await Deno.readTextFile(events).catch(() => "");
     const block = statusMarkdown(result, cases, seconds, memBody, sysBody, timeline(eventsBody));
     if (unsafe(block)) throw new Error("rendered block contains a home path");
@@ -430,7 +524,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         } else {
           started = true;
           await emit("run", "container", "ok", name);
-          const tarPaths = ["apply", "setup.ts", "config", "test.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "sandbox/Containerfile"];
+          const tarPaths = ["apply", "setup.ts", "config", "test.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile"];
           if (await exists(`${ROOT}/skills`)) tarPaths.push("skills");
           const tar = new Deno.Command("tar", {
             args: ["--no-xattrs", "-C", ROOT, "-cf", "-", ...tarPaths],
@@ -639,7 +733,7 @@ try {
   if (!has(`${ROOT}/CONTRIBUTING.md`, "This repo does not identify a person")) fail("identity: CONTRIBUTING.md does not forbid personal information");
   const scanned = [
     "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config/config.toml",
-    "agents/independent-reviewer.md", "agents/models.md", "sandbox/Containerfile", "test.ts",
+    "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", "test.ts",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",
     "skills/author-skill/references/research.md", "skills/author-skill/references/vendor.md", "skills/author-skill/references/write.md",
@@ -663,7 +757,7 @@ try {
   if (!has(reviewer, "skills/container/SKILL.md")) fail("reviewer: does not read skills/container/SKILL.md");
   if (!has(reviewer, "from start to finish before you judge")) fail("reviewer: skill is not read before judging");
   if (!has(reviewer, "prompt exactly `/bootstrap`")) fail("reviewer: does not score the one-turn bootstrap run");
-  if (!has(reviewer, "agents/models.md")) fail("reviewer: does not record the grade");
+  if (!has(reviewer, "evals/results.json")) fail("reviewer: does not record the grade");
   ok("reviewer");
 
   const models = `${ROOT}/agents/models.md`;
@@ -673,6 +767,20 @@ try {
   if (!has(models, "skill calling")) fail("models: skill calling column missing");
   if (!has(models, "where` set to `cloud")) fail("models: cloud uses a different table");
   ok("models");
+
+  const results = JSON.parse(text(`${ROOT}/evals/results.json`)) as {
+    overview?: string;
+    domains: { id: string; evals: { id: string; scores: { model: string; where: string; grade: string }[] }[] }[];
+  };
+  const skillCalling = results.domains.find((domain) => domain.id === "skill-calling");
+  const bootstrapEval = skillCalling?.evals.find((item) => item.id === "bootstrap");
+  const scored = (model: string) => bootstrapEval?.scores.find((score) => score.model === model);
+  if (!results.overview) fail("evals: overview missing");
+  if (!bootstrapEval) fail("evals: skill-calling/bootstrap missing");
+  if (scored("qwen2.5-coder-3b-instruct-q8_0")?.where !== "local" || scored("qwen2.5-coder-3b-instruct-q8_0")?.grade !== "D") fail("evals: local bootstrap grade is not D");
+  if (scored("grok-4.7")?.where !== "cloud" || scored("grok-4.7")?.grade !== "A") fail("evals: cloud bootstrap grade is not A");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "evals/results.json")) fail("evals: CONTRIBUTING.md does not keep the score source");
+  ok("evals");
 
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Script in TypeScript")) fail("setup: CONTRIBUTING.md does not require TypeScript");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Follow `skills/agent-ready/SKILL.md`")) fail("setup: CONTRIBUTING.md does not name the agent-ready skill");

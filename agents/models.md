@@ -1,12 +1,10 @@
 # Models
 
-Grades for models that have run a Herdr agent. `where` is `local` or `cloud`. A cell is a grade from `agents/independent-reviewer.md`, or empty when that model has not been scored. Do not invent a grade.
+Rendered from `evals/results.json` by `./test.ts`. Do not edit this table by hand.
 
-`skill calling` is the basic case: one turn, prompt exactly `/bootstrap`, context only `skills/herdr/bootstrap.md`.
+The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.
 
-| model | where | skill calling |
+| model | where | skill-calling/bootstrap |
 | --- | --- | --- |
 | qwen2.5-coder-3b-instruct-q8_0 | local | D |
 | grok-4.7 | cloud | A |
-
-The local run returned a restatement of the skill and did not start the skill's first step. The cloud run was Grok Build inside a named Herdr session, kind `grok`, prompt exactly `/bootstrap`. It started that step and asked the 10. A cloud model uses this same table with `where` set to `cloud`.

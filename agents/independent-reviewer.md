@@ -57,4 +57,4 @@ Grade only what that turn did with the skill it was given:
 - **D.** Returns the skill text, or a piece of it, and does not start the step.
 - **F.** Empty, or an `answered:` line the skill did not ask for on that turn.
 
-Say the grade and the reason in a few lines. Record it in `agents/models.md`: the row is the model, `where` is `local` or `cloud`, and the basic case is the `skill calling` column. Leave a cell empty when that model was not scored. Do not invent a grade. Then stop.
+Say the grade and the reason in a few lines. Record it in `evals/results.json`, under the domain and the eval, on that model's score. `where` is `local` or `cloud`. The basic case is domain `skill-calling`, eval `bootstrap`. Leave a score out when that model was not scored. Do not invent a grade. Then stop.
