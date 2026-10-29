@@ -20,7 +20,7 @@ Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https
 
 ## Set up a machine
 
-A new machine starts with `setup.ts`. That script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. How scripts are written is `CONTRIBUTING.md`.
+A new machine starts with `setup.ts`. That script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. How scripts are written is `CONTRIBUTING.md`. Every change follows `skills/ponytail/SKILL.md`. How that is required is `CONTRIBUTING.md`.
 
 1. Use a checkout of this repo on the machine. Run `./apply` from that checkout. Do not paste the config into place yourself.
 2. Read the JSON object on stdout. Ignore the urge to treat a friendly log line as success.

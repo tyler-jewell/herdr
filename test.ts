@@ -723,6 +723,8 @@ try {
   if (!has(workflow, "runs-on: [self-hosted, mac-studio]")) fail("arch: workflow has no studio job");
   if (!has(workflow, "test.ts linux")) fail("arch: workflow does not run the linux path");
   if (!has(workflow, "test.ts macos")) fail("arch: workflow does not run the macos path");
+  if (!has(workflow, "contents: read")) fail("arch: workflow token can write");
+  if (has(workflow, "pull_request")) fail("arch: a fork pull request can start the studio runner");
   ok("arch");
 
   if (!src.includes("test.events.sse")) fail("events: script does not name the SSE stream");
@@ -746,6 +748,15 @@ try {
   if (!has(`${ROOT}/skills/author-skill/SKILL.md`, "develop a skill centered around")) fail("author-skill: trigger missing");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Follow `skills/author-skill/SKILL.md`")) fail("author-skill: CONTRIBUTING.md does not name it");
   ok("herdr-skill");
+
+  const ponytail = `${ROOT}/skills/ponytail/SKILL.md`;
+  if (!await exists(ponytail)) fail("ponytail: missing skills/ponytail/SKILL.md");
+  if (!hasRe(ponytail, /^name: ponytail$/m)) fail("ponytail: skill name is not ponytail");
+  if (!has(ponytail, "The best code is the code never written.")) fail("ponytail: published text missing");
+  if (!has(`${ROOT}/skills/ponytail/SOURCE`, "134b8e1a3a8078302b8ba77f86626c0802b2a6db")) fail("ponytail: SOURCE is not the pinned revision");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "Follow `skills/ponytail/SKILL.md`")) fail("ponytail: CONTRIBUTING.md does not require it");
+  if (!has(`${ROOT}/skills/author-skill/references/vendor.md`, "The committed pin is the skill agents run.")) fail("ponytail: vendor.md has no update rule");
+  ok("ponytail");
 
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Every tool or service this repo uses has its skill in `skills/`")) fail("skills: CONTRIBUTING.md does not require a committed skill per tool");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "npx skills")) fail("skills: CONTRIBUTING.md does not name npx skills");
@@ -779,6 +790,7 @@ try {
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",
     "skills/author-skill/references/research.md", "skills/author-skill/references/vendor.md", "skills/author-skill/references/write.md",
     "skills/agent-ready/SKILL.md", "skills/agent-ready/CHECKLIST.md", "skills/agent-ready/references/entry.md",
+    "skills/ponytail/CHECKLIST.md", "skills/ponytail/SOURCE",
   ];
   const person = new RegExp(["ty", "ler|je", "well|gm", "ail\\.com"].join(""), "i");
   const emails: string[] = [];

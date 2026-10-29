@@ -12,9 +12,9 @@ This is the setup repo for [Herdr](https://herdr.dev). The status block is the c
 | | |
 | --- | --- |
 | result | pass |
-| cases | 30 |
+| cases | 31 |
 | seconds | 18 |
-| revision | dccd427+ |
+| revision | 4012451+ |
 | setup | 1 |
 
 ### Harness
@@ -30,13 +30,14 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
-| 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-12290 |
-| 3s | run | container | ok | herdr-test-12290 |
+| 3s | run | image-build | ok | herdr-sandbox |
+| 3s | run | container | start | herdr-test-15310 |
+| 4s | run | container | ok | herdr-test-15310 |
 | 6s | check | arch | ok |  |
 | 6s | check | events | ok |  |
 | 6s | check | skill | ok |  |
 | 6s | check | herdr-skill | ok |  |
+| 6s | check | ponytail | ok |  |
 | 6s | check | skills-rule | ok |  |
 | 6s | check | checklist | ok |  |
 | 6s | check | bootstrap | ok |  |
@@ -57,7 +58,7 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 6s | check | unwritable | ok |  |
 | 6s | check | installer | ok |  |
 | 6s | check | stamp | ok |  |
-| 18s | check | live-apply | ok |  |
+| 16s | check | live-apply | ok |  |
 | 18s | check | live-config | ok |  |
 | 18s | check | live-agents | ok |  |
 | 18s | check | live-core | ok |  |
@@ -68,13 +69,13 @@ One public script applies this Herdr config on a computer, then hands an agent t
 ### Memory
 
 ```text
-container herdr-test-12290
+container herdr-test-15310
 memory 145.6 MiB / 1024.0 MiB
-cpu_usec 1572637
+cpu_usec 1271199
 pids 2
-net_rx 29954285
-net_tx 281205
-block_read 120844288
+net_rx 29951621
+net_tx 266089
+block_read 120750080
 block_write 0
 ```
 
@@ -143,7 +144,7 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `evals/results.json` | Domains, evals, and the local and cloud grade for each. The score source. |
 | `agents/models.md` | Grade table rendered from `evals/results.json`. |
 | `badges/evals.svg` | Capability heatmap rendered from the same file. |
-| `skills/` | One skill per tool. Official packages stay as published. |
+| `skills/` | One skill per tool. Official packages stay as published. `skills/ponytail` is required for every change. |
 | `badges/` | Pills for the last local test: result, cases, seconds. |
 
 Run `./test.ts` before sending a change. `deno` must be on `PATH`. The report stays in four sections even when the test fails. The status block above is the record of that run.
