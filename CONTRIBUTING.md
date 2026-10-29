@@ -12,6 +12,8 @@ The point of this repo is that every machine using this setup runs the same Herd
 - **SSOT**: Single Source of Truth. Each fact lives in exactly one place. If you need it elsewhere, point to it.
 - **DRY**: Don't repeat yourself. Duplication breeds drift.
 - **No cruft**: If a file, code, or doc is not pulling its weight, remove it. Better to have less than to have noise.
+- **No file is a good file**: If something doesn't need to exist, delete it. Every file must earn its keep.
+- **Take what they give us**: Never add ad-hoc setup, conventions, or scaffolding. When using an official tool/package/installer, take its structure as-is. Don't invent our own patterns on top of theirs.
 - **TypeScript only**: All scripts are TypeScript. No Python, no shell scripts beside `apply`. No second test file.
 
 ## No personal information
