@@ -5,7 +5,8 @@
 // Not for: the sandbox itself (evals.ts), the agent eval (agent.ts), row shapes (results.ts).
 
 import { command, DENO_FLAGS, exists, Fail, fail, findPaths, has, ok, ownedFiles, repoFiles, ROOT, sameBytes, sleep, text } from "./lib.ts";
-import { evalDefs, evalRows, latestRows, readmeWithResults, renderResults, rowError } from "./results.ts";
+import { heatmapSvg, readmeBlock, readmeWithBlock } from "./render.ts";
+import { capabilityDefs, capabilityScale, computeMetrics, evalDefs, evalRows, latestPerCommit, metricDefs, rowError } from "./results.ts";
 
 if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   console.log("FAIL checks.ts runs only inside the sandbox. Run ./evals.ts.");
@@ -64,16 +65,28 @@ async function offline(): Promise<void> {
   }
   ok("identity");
 
-  // Rows are only what the pipeline wrote: each one valid, and the README block rendered from them.
-  const defs = evalDefs();
+  // The core config: 10 metrics, all computed; 10 capabilities, some required; an eval for this setup.
+  const metrics = metricDefs();
+  const caps = capabilityDefs();
   const setupVersion = text(`${ROOT}/apply`).match(/^SETUP_VERSION=(.*)$/m)?.[1] ?? "";
-  if (!defs.versions.some((v) => v.setup === setupVersion)) fail(`results: evals.json has no evals for setup ${setupVersion}`);
+  if (metrics.length !== 10 || new Set(metrics.map((m) => m.id)).size !== 10) fail("config: metrics.json does not hold 10 unique metrics");
+  if (metrics.some((m) => !["lower", "higher"].includes(m.better) || !m.how)) fail("config: a metric has no direction or source");
+  computeMetrics([], 0, []);
+  if (caps.length !== 10 || new Set(caps.map((c) => c.id)).size !== 10) fail("config: capabilities.json does not hold 10 unique capabilities");
+  if (!caps.some((c) => c.required) || caps.some((c) => !c.look_for)) fail("config: no required capability, or one has no rubric");
+  if (capabilityScale().length === 0) fail("config: capabilities.json has no scale");
+  if (!evalDefs().versions.some((v) => v.setup === setupVersion)) fail(`config: evals.json has no evals for setup ${setupVersion}`);
+  ok("config");
+
+  // Rows are only what the pipeline wrote: each one valid, and the README block and heatmap rendered from them.
   for (const [n, row] of evalRows().entries()) {
-    const why = rowError(row, defs);
+    const why = rowError(row);
     if (why) fail(`results: evals.jsonl row ${n + 1}: ${why}`);
   }
+  const rows = latestPerCommit();
   const readme = text(`${ROOT}/README.md`);
-  if (readmeWithResults(readme, renderResults(latestRows(), defs.judge_fields)) !== readme) fail("results: the README results block is not what evals.jsonl renders");
+  if (readmeWithBlock(readme, readmeBlock(rows, metrics, caps)) !== readme) fail("results: the README results block is not what evals.jsonl renders");
+  if (!await exists(`${ROOT}/results.svg`) || text(`${ROOT}/results.svg`) !== heatmapSvg(rows, metrics, caps)) fail("results: results.svg is not what evals.jsonl renders");
   ok("results");
 
   const ver = setupVersion;

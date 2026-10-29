@@ -8,7 +8,18 @@
 // ./evals.ts [macos|linux] [--shell|--agent]
 
 import { command, DENO_FLAGS, onPath, repoFiles, ROOT } from "./lib.ts";
-import { evalDefs, evalRows, latestRows, readmeWithResults, renderResults, rowError } from "./results.ts";
+import { heatmapSvg, readmeBlock, readmeWithBlock } from "./render.ts";
+import { capabilityDefs, evalRows, latestPerCommit, metricDefs, rowError } from "./results.ts";
+
+// The files a recorded run writes. Anything else uncommitted means the run would not be one commit's behavior.
+const RESULT_FILES = ["evals.jsonl", "README.md", "results.svg"];
+
+async function writeRenders(): Promise<void> {
+  const rows = latestPerCommit(evalRows());
+  const readme = await Deno.readTextFile(`${ROOT}/README.md`);
+  await Deno.writeTextFile(`${ROOT}/README.md`, readmeWithBlock(readme, readmeBlock(rows, metricDefs(), capabilityDefs())));
+  await Deno.writeTextFile(`${ROOT}/results.svg`, heatmapSvg(rows, metricDefs(), capabilityDefs()));
+}
 
 const arch = Deno.args[0] ?? "macos";
 const mode = Deno.args[1] ?? "";
@@ -77,7 +88,7 @@ function inSandbox(script: string, stdout: "inherit" | "piped"): Deno.ChildProce
 }
 
 // The agent eval prints progress and one `ROW <json>` line. Only a valid row is appended, then rendered.
-async function agent(): Promise<number> {
+async function agent(commit: string): Promise<number> {
   const child = inSandbox("agent.ts", "piped");
   let row = "";
   let buffer = "";
@@ -92,25 +103,29 @@ async function agent(): Promise<number> {
   }
   const status = await child.status;
   if (status.code !== 0 || !row) return status.code || 1;
-  const revision = (await command("git", ["-C", ROOT, "rev-parse", "--short", "HEAD"])).stdout.trim();
-  const dirty = (await command("git", ["-C", ROOT, "status", "--porcelain"])).stdout.trim() ? "+" : "";
-  const parsed = JSON.parse(row);
-  const full = { at: new Date().toISOString(), revision: revision + dirty, ...parsed };
-  const defs = evalDefs();
-  const why = rowError(full, defs);
+  const full = { commit, at: new Date().toISOString(), ...JSON.parse(row) };
+  const why = rowError(full);
   if (why) {
     console.log(`FAIL agent: the row is not valid (${why}); nothing was recorded`);
     return 1;
   }
   await Deno.writeTextFile(`${ROOT}/evals.jsonl`, JSON.stringify(full) + "\n", { append: true });
-  const readme = await Deno.readTextFile(`${ROOT}/README.md`);
-  await Deno.writeTextFile(`${ROOT}/README.md`, readmeWithResults(readme, renderResults(latestRows(evalRows()), defs.judge_fields)));
-  console.log(`recorded: evals.jsonl row ${evalRows().length}, README results updated`);
+  await writeRenders();
+  console.log(`recorded: ${commit.slice(0, 7)} scored ${full.score}/10; evals.jsonl, README.md, and results.svg updated. Commit them.`);
   return 0;
+}
+
+// One recorded run per commit: refuse when anything but the result files is uncommitted.
+async function cleanCommit(): Promise<string> {
+  const dirty = (await command("git", ["-C", ROOT, "status", "--porcelain"])).stdout.split("\n").filter(Boolean)
+    .map((line) => line.slice(3)).filter((rel) => !RESULT_FILES.includes(rel));
+  if (dirty.length) throw new Error(`commit first: --agent records one commit's behavior, and these are uncommitted: ${dirty.join(", ")}`);
+  return (await command("git", ["-C", ROOT, "rev-parse", "HEAD"])).stdout.trim();
 }
 
 let code = 1;
 try {
+  const commit = mode === "--agent" ? await cleanCommit() : "";
   await start();
   if (mode === "--shell") {
     Deno.addSignalListener("SIGINT", () => {});
@@ -119,7 +134,7 @@ try {
     const tty = new Deno.Command(runtime, { args: ["exec", "-it", ...env, "--workdir", "/home/tester/src", name, "bash", "-l"], stdin: "inherit", stdout: "inherit", stderr: "inherit" }).spawn();
     code = (await tty.status).code;
   } else if (mode === "--agent") {
-    code = await agent();
+    code = await agent(commit);
   } else {
     code = (await inSandbox("checks.ts", "inherit").status).code;
   }
