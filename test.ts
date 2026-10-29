@@ -758,6 +758,19 @@ try {
   if (!has(`${ROOT}/skills/author-skill/references/vendor.md`, "The committed pin is the skill agents run.")) fail("ponytail: vendor.md has no update rule");
   ok("ponytail");
 
+  const lock = `${ROOT}/skills/repo-protection`;
+  if (!await exists(`${lock}/SKILL.md`)) fail("repo-protection: missing SKILL.md");
+  if (!hasRe(`${lock}/SKILL.md`, /^name: repo-protection$/m)) fail("repo-protection: skill name is not repo-protection");
+  if (!has(`${lock}/references/policy.json`, '"required_signatures"')) fail("repo-protection: signatures are not required");
+  if (!has(`${lock}/references/policy.json`, '"non_fast_forward"')) fail("repo-protection: force-push is allowed");
+  if (!has(`${lock}/references/policy.json`, '"authenticated-user"')) fail("repo-protection: push bypass is not the authenticated admin");
+  if (!has(`${lock}/references/policy.json`, '"sha_pinning_required": true')) fail("repo-protection: action SHAs are not pinned");
+  if (!has(`${lock}/references/apply.md`, "Do not send `allow_forking`.")) fail("repo-protection: forking can be turned off");
+  if (!has(`${lock}/references/sign.md`, "admin:ssh_signing_key")) fail("repo-protection: signing-key scope is missing");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "Follow `skills/repo-protection/SKILL.md`")) fail("repo-protection: CONTRIBUTING.md does not require the lock");
+  if (!has(`${ROOT}/AGENTS.md`, "skills/repo-protection/SKILL.md")) fail("repo-protection: AGENTS.md does not name signing");
+  ok("repo-protection");
+
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Every tool or service this repo uses has its skill in `skills/`")) fail("skills: CONTRIBUTING.md does not require a committed skill per tool");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "npx skills")) fail("skills: CONTRIBUTING.md does not name npx skills");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "follows the format of `skills/turnkey-tk`")) fail("skills: CONTRIBUTING.md does not require the turnkey skill format");
@@ -791,6 +804,9 @@ try {
     "skills/author-skill/references/research.md", "skills/author-skill/references/vendor.md", "skills/author-skill/references/write.md",
     "skills/agent-ready/SKILL.md", "skills/agent-ready/CHECKLIST.md", "skills/agent-ready/references/entry.md",
     "skills/ponytail/CHECKLIST.md", "skills/ponytail/SOURCE",
+    "skills/repo-protection/SKILL.md", "skills/repo-protection/CHECKLIST.md",
+    "skills/repo-protection/references/apply.md", "skills/repo-protection/references/sign.md",
+    "skills/repo-protection/references/policy.json",
   ];
   const person = new RegExp(["ty", "ler|je", "well|gm", "ail\\.com"].join(""), "i");
   const emails: string[] = [];

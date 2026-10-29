@@ -12,9 +12,9 @@ This is the setup repo for [Herdr](https://herdr.dev). The status block is the c
 | | |
 | --- | --- |
 | result | pass |
-| cases | 31 |
-| seconds | 18 |
-| revision | 4012451+ |
+| cases | 32 |
+| seconds | 14 |
+| revision | 099c7fc+ |
 | setup | 1 |
 
 ### Harness
@@ -30,52 +30,53 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
-| 3s | run | image-build | ok | herdr-sandbox |
-| 3s | run | container | start | herdr-test-15310 |
-| 4s | run | container | ok | herdr-test-15310 |
-| 6s | check | arch | ok |  |
-| 6s | check | events | ok |  |
-| 6s | check | skill | ok |  |
-| 6s | check | herdr-skill | ok |  |
-| 6s | check | ponytail | ok |  |
-| 6s | check | skills-rule | ok |  |
-| 6s | check | checklist | ok |  |
-| 6s | check | bootstrap | ok |  |
-| 6s | check | identity | ok |  |
-| 6s | check | reviewer | ok |  |
-| 6s | check | models | ok |  |
-| 6s | check | evals | ok |  |
-| 6s | check | setup | ok |  |
-| 6s | check | tk | ok |  |
-| 6s | check | pills | ok |  |
-| 6s | check | status | ok |  |
-| 6s | check | fresh | ok |  |
-| 6s | check | idempotent | ok |  |
-| 6s | check | drift | ok |  |
-| 6s | check | linux | ok |  |
-| 6s | check | windows | ok |  |
-| 6s | check | unknown-os | ok |  |
-| 6s | check | unwritable | ok |  |
-| 6s | check | installer | ok |  |
-| 6s | check | stamp | ok |  |
-| 16s | check | live-apply | ok |  |
-| 18s | check | live-config | ok |  |
-| 18s | check | live-agents | ok |  |
-| 18s | check | live-core | ok |  |
-| 18s | check | live-worktree | ok |  |
-| 18s | check | live-stop | ok |  |
-| 18s | result | suite | pass |  |
+| 1s | run | image-build | ok | herdr-sandbox |
+| 1s | run | container | start | herdr-test-15747 |
+| 2s | run | container | ok | herdr-test-15747 |
+| 5s | check | arch | ok |  |
+| 5s | check | events | ok |  |
+| 5s | check | skill | ok |  |
+| 5s | check | herdr-skill | ok |  |
+| 5s | check | ponytail | ok |  |
+| 5s | check | repo-protection | ok |  |
+| 5s | check | skills-rule | ok |  |
+| 5s | check | checklist | ok |  |
+| 5s | check | bootstrap | ok |  |
+| 5s | check | identity | ok |  |
+| 5s | check | reviewer | ok |  |
+| 5s | check | models | ok |  |
+| 5s | check | evals | ok |  |
+| 5s | check | setup | ok |  |
+| 5s | check | tk | ok |  |
+| 5s | check | pills | ok |  |
+| 5s | check | status | ok |  |
+| 5s | check | fresh | ok |  |
+| 5s | check | idempotent | ok |  |
+| 5s | check | drift | ok |  |
+| 5s | check | linux | ok |  |
+| 5s | check | windows | ok |  |
+| 5s | check | unknown-os | ok |  |
+| 5s | check | unwritable | ok |  |
+| 5s | check | installer | ok |  |
+| 5s | check | stamp | ok |  |
+| 14s | check | live-apply | ok |  |
+| 14s | check | live-config | ok |  |
+| 14s | check | live-agents | ok |  |
+| 14s | check | live-core | ok |  |
+| 14s | check | live-worktree | ok |  |
+| 14s | check | live-stop | ok |  |
+| 14s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-15310
-memory 145.6 MiB / 1024.0 MiB
-cpu_usec 1271199
+container herdr-test-15747
+memory 146.0 MiB / 1024.0 MiB
+cpu_usec 1260050
 pids 2
-net_rx 29951621
-net_tx 266089
-block_read 120750080
+net_rx 29963612
+net_tx 261175
+block_read 120950784
 block_write 0
 ```
 
@@ -145,6 +146,7 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `agents/models.md` | Grade table rendered from `evals/results.json`. |
 | `badges/evals.svg` | Capability heatmap rendered from the same file. |
 | `skills/` | One skill per tool. Official packages stay as published. `skills/ponytail` is required for every change. |
+| `skills/repo-protection` | The committed repository lock and the commit-signing checks. |
 | `badges/` | Pills for the last local test: result, cases, seconds. |
 
 Run `./test.ts` before sending a change. `deno` must be on `PATH`. The report stays in four sections even when the test fails. The status block above is the record of that run.

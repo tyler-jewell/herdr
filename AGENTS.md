@@ -72,6 +72,7 @@ A machine is good when all of these hold:
 - When a skill is used, decide every item in that skill's `CHECKLIST.md` before acting. The checklist is the decision list. Do not invent a setup the checklist does not allow.
 - Open checklist items for a new system are decided by `skills/herdr/bootstrap.md` before that system is built.
 - Controlling Herdr panes is `skills/herdr/SKILL.md`. Follow it. Do not paste it.
+- Commit signing on a machine follows `skills/repo-protection/SKILL.md`. Do not paste it. The repository lock that signing serves is `CONTRIBUTING.md`.
 
 ## Prove it
 
