@@ -279,7 +279,7 @@ PY
 
   # Send only the setup files in. Nothing on the host is mounted.
   # skills/ is part of the assertion. Omit it when absent so the test can fail the check.
-  tar_paths="apply config test.sh AGENTS.md CONTRIBUTING.md README.md agents/independent-reviewer.md sandbox/Containerfile"
+  tar_paths="apply config test.sh AGENTS.md CONTRIBUTING.md README.md agents/independent-reviewer.md agents/models.md sandbox/Containerfile"
   [ -d "$ROOT/skills" ] && tar_paths="$tar_paths skills"
   # shellcheck disable=SC2086
   COPYFILE_DISABLE=1 tar --no-xattrs -C "$ROOT" -cf - $tar_paths \
@@ -471,7 +471,7 @@ printf 'ok bootstrap\n'
 
 # Project files do not identify a person. Upstream skills are not part of this scan.
 grep -q 'This repo does not identify a person' "$ROOT/CONTRIBUTING.md" || fail "identity: CONTRIBUTING.md does not forbid personal information"
-for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md sandbox/Containerfile test.sh skills/herdr/bootstrap.md skills/herdr/CHECKLIST.md skills/author-skill/SKILL.md skills/author-skill/CHECKLIST.md skills/author-skill/references/research.md skills/author-skill/references/vendor.md skills/author-skill/references/write.md; do
+for f in README.md AGENTS.md CONTRIBUTING.md apply config/config.toml agents/independent-reviewer.md agents/models.md sandbox/Containerfile test.sh skills/herdr/bootstrap.md skills/herdr/CHECKLIST.md skills/author-skill/SKILL.md skills/author-skill/CHECKLIST.md skills/author-skill/references/research.md skills/author-skill/references/vendor.md skills/author-skill/references/write.md; do
   [ -f "$ROOT/$f" ] || fail "identity: missing $f"
   if grep -Ei 'ty''ler|je''well|gm''ail\.com' "$ROOT/$f" >/dev/null; then
     fail "identity: $f identifies a person"
@@ -480,6 +480,7 @@ done
 emails=$(grep -E -h -o '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
   "$ROOT/README.md" "$ROOT/AGENTS.md" "$ROOT/CONTRIBUTING.md" "$ROOT/apply" \
   "$ROOT/config/config.toml" "$ROOT/agents/independent-reviewer.md" \
+  "$ROOT/agents/models.md" \
   "$ROOT/sandbox/Containerfile" "$ROOT/test.sh" "$ROOT/skills/herdr/bootstrap.md" \
   "$ROOT/skills/herdr/CHECKLIST.md" \
   "$ROOT/skills/author-skill/SKILL.md" "$ROOT/skills/author-skill/CHECKLIST.md" \
@@ -495,7 +496,16 @@ reviewer="$ROOT/agents/independent-reviewer.md"
 grep -q 'skills/container/SKILL.md' "$reviewer" || fail "reviewer: does not read skills/container/SKILL.md"
 grep -q 'from start to finish before you judge' "$reviewer" || fail "reviewer: skill is not read before judging"
 grep -q 'prompt exactly `/bootstrap`' "$reviewer" || fail "reviewer: does not score the one-turn bootstrap run"
+grep -q 'agents/models.md' "$reviewer" || fail "reviewer: does not record the grade"
 printf 'ok reviewer\n'
+
+# Local and cloud models share one grade table. A cell stays empty until scored.
+models="$ROOT/agents/models.md"
+[ -f "$models" ] || fail "models: missing agents/models.md"
+grep -q 'qwen2.5-coder-3b-instruct-q8_0 | local | D' "$models" || fail "models: local skill calling grade is not D"
+grep -q 'skill calling' "$models" || fail "models: skill calling column missing"
+grep -q 'where` set to `cloud' "$models" || fail "models: cloud uses a different table"
+printf 'ok models\n'
 
 # Official tk package from tkhq/tk, installed by `tk skills install`. The only secrets and keys path.
 tk_dir="$ROOT/skills/turnkey-tk"

@@ -44,6 +44,7 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `CONTRIBUTING.md` | Rules for changing the setup. |
 | `test.sh` | The only test. Default arch `macos` runs the checks in an Apple container. |
 | `agents/independent-reviewer.md` | Reviews a change. A person or CI/CD can call it. |
+| `agents/models.md` | Local and cloud models, and the grades they have earned. |
 | `skills/turnkey-tk` | Official `tk` skill. Secrets and keys go through `tk` only. |
 | `badges/` | Pills for the last local test: result, cases, seconds. |
 

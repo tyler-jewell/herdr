@@ -81,4 +81,4 @@ File: `agents/independent-reviewer.md`
 
 When: a change needs a review, or a Herdr agent run needs a score. A person can start it, or CI/CD can start it. The job is the same either way.
 
-How: give the agent that file and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. The agent reads the source-of-truth docs named in that file, each one whole, before it reviews. When the change touches the container runtime, it also reads `skills/container/SKILL.md` whole. Do not paste that skill.
+How: give the agent that file and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. The agent reads the source-of-truth docs named in that file, each one whole, before it reviews. When the change touches the container runtime, it also reads `skills/container/SKILL.md` whole. Do not paste that skill. A score is recorded in `agents/models.md`.
