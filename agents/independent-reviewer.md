@@ -22,7 +22,7 @@ That choice includes any of these, or a narrower or wider pass when the change c
 
 - Read one function.
 - Check that the change stays robust when apply fails or is run twice.
-- Run the full test pipeline, `./test.ts`.
+- Run the full eval pipeline, `./evals.ts`.
 - Review security: what the change executes, writes, or installs on a machine.
 
 Do not lock that choice until the container section below is settled.

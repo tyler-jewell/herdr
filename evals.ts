@@ -1,9 +1,9 @@
 #!/usr/bin/env -S deno run --quiet --allow-run --allow-read --allow-write --allow-net --allow-env
-// The only test. ./test.ts [arch]
+// The only eval runner. ./evals.ts [arch]
 // Default arch is macos: run the checks in an Apple container on this Mac.
 // Inside that container the checks print one line each. The macos report is four
 // sections, including when the test fails.
-// As each step finishes, a Server-Sent Event is appended to test.events.sse
+// As each step finishes, a Server-Sent Event is appended to eval.events.sse
 // (text/event-stream records: id, event, data, blank line). That file is the
 // chronological stream. It is not part of the four-section report.
 
@@ -134,12 +134,12 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   const name = `herdr-test-${Deno.pid}`;
   const image = Deno.env.get("HERDR_TEST_IMAGE") ?? "herdr-sandbox";
   const work = await Deno.makeTempDir();
-  const testLog = `${work}/test.log`;
+  const evalLog = `${work}/test.log`;
   const memLog = `${work}/memory.log`;
   const sysLog = `${work}/system.log`;
   const infra = `${work}/infra.log`;
   const runLog = `${work}/run.log`;
-  const events = `${ROOT}/test.events.sse`;
+  const events = `${ROOT}/eval.events.sse`;
   await Deno.writeTextFile(events, "");
   let seq = 0;
   let logOff = 0;
@@ -167,7 +167,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   async function drain(): Promise<void> {
     let raw: Uint8Array;
     try {
-      raw = await Deno.readFile(testLog);
+      raw = await Deno.readFile(evalLog);
     } catch {
       return;
     }
@@ -217,7 +217,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         console.log(empty);
       }
     };
-    await section("test", testLog, "FAIL no test output");
+    await section("test", evalLog, "FAIL no test output");
     await section("memory", memLog, "unavailable");
     await section("system", sysLog, "unavailable");
     console.log("== result ==");
@@ -315,7 +315,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     const lines = [
       "# Models",
       "",
-      "Rendered from `evals/results.json` by `./test.ts`. Do not edit this table by hand.",
+      "Rendered from `evals/results.json` by `./evals.ts`. Do not edit this table by hand.",
       "",
       "One matrix per setup version. Grades stay on the version that was scored. The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.",
       "",
@@ -535,24 +535,37 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
 
   async function cleanup(): Promise<void> {
     if (started) {
-      const stopped = arch === "linux"
-        ? await command("docker", ["rm", "-f", name])
-        : await command("container", ["stop", name]);
-      const deleted = arch === "linux" ? { stderr: "" } : await command("container", ["delete", name]);
-      await append(infra, stopped.stderr + deleted.stderr);
+      if (arch === "linux") {
+        await command("docker", ["rm", "-f", name]);
+      } else {
+        await command("container", ["stop", name]);
+        await command("container", ["delete", name]);
+        // extra GC passes
+        await command("container", ["prune", "-f"]);
+        await command("container", ["system", "prune", "-f"]);
+      }
     }
-    await Deno.remove(work, { recursive: true });
+    try {
+      await Deno.remove(work, { recursive: true });
+    } catch {}
+    // Global GC sweep for any leftover herdr-test-* containers
+    if (arch === "linux") {
+      await command("sh", ["-c", "docker ps -a --filter 'name=herdr-test-' -q | xargs -r docker rm -f"]);
+    } else {
+      await command("sh", ["-c", "container list --all 2>/dev/null | grep herdr-test | awk '{print $1}' | xargs -r -n1 container stop"]);
+      await command("sh", ["-c", "container list --all 2>/dev/null | grep herdr-test | awk '{print $1}' | xargs -r -n1 container delete"]);
+    }
   }
 
   try {
     const runtime = arch === "linux" ? "docker" : "container";
     if (arch !== "macos" && arch !== "linux") {
-      await Deno.writeTextFile(testLog, `FAIL arch: ${arch} is not supported\n`);
+      await Deno.writeTextFile(evalLog, `FAIL arch: ${arch} is not supported\n`);
       await drain();
       exitCode = 1;
     } else if (!(await onPath(runtime))) {
       const why = arch === "linux" ? "docker is not on PATH" : "Apple container CLI is not on PATH";
-      await Deno.writeTextFile(testLog, `FAIL container: ${why}\n`);
+      await Deno.writeTextFile(evalLog, `FAIL container: ${why}\n`);
       await Deno.writeTextFile(sysLog, `unavailable: ${why}\n`);
       exitCode = 1;
     } else {
@@ -567,7 +580,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       await Deno.writeTextFile(`${work}/build.log`, build.stdout + build.stderr);
       if (build.code !== 0) {
         const tail = stripNoise(build.stdout + build.stderr).split("\n").filter(Boolean).slice(-8).join("\n");
-        await Deno.writeTextFile(testLog, `FAIL container: could not build the sandbox image\n${tail}\n`);
+        await Deno.writeTextFile(evalLog, `FAIL container: could not build the sandbox image\n${tail}\n`);
         await captureSystem();
         await drain();
         exitCode = 1;
@@ -587,14 +600,14 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         const run = await command(runtime, runArgs);
         await Deno.writeTextFile(runLog, run.stdout + run.stderr);
         if (run.code !== 0) {
-          await Deno.writeTextFile(testLog, `FAIL container: could not start ${image}\n${await noteInfra()}\n`);
+          await Deno.writeTextFile(evalLog, `FAIL container: could not start ${image}\n${await noteInfra()}\n`);
           await Deno.writeTextFile(memLog, "unavailable: container did not start\n");
           await captureSystem();
           exitCode = 1;
         } else {
           started = true;
           await emit("run", "container", "ok", name);
-          const tarPaths = ["apply", "setup.ts", "config", "test.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
+          const tarPaths = ["apply", "setup.ts", "config", "evals.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
           if (await exists(`${ROOT}/skills`)) tarPaths.push("skills");
           const tar = new Deno.Command("tar", {
             args: ["--no-xattrs", "-C", ROOT, "-cf", "-", ...tarPaths],
@@ -609,14 +622,14 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
               "--env", "PATH=/home/tester/.local/bin:/usr/local/bin:/usr/bin:/bin",
               "--env", "DENO_NO_UPDATE_CHECK=1",
               name, "/bin/sh", "-c",
-              'mkdir -p "$HOME/src" && tar -C "$HOME/src" -xf - && exec stdbuf -oL deno run --quiet --allow-run --allow-read --allow-write --allow-net --allow-env "$HOME/src/test.ts" 2>&1',
+              'mkdir -p "$HOME/src" && tar -C "$HOME/src" -xf - && exec stdbuf -oL deno run --quiet --allow-run --allow-read --allow-write --allow-net --allow-env "$HOME/src/evals.ts" 2>&1',
             ],
             stdin: "piped",
             stdout: "piped",
             stderr: "piped",
           }).spawn();
           tar.stdout.pipeTo(exec.stdin).catch(() => {});
-          const logFh = await Deno.open(testLog, { write: true, create: true });
+          const logFh = await Deno.open(evalLog, { write: true, create: true });
           const copy = async (stream: ReadableStream<Uint8Array>) => {
             for await (const chunk of stream) await logFh.write(chunk);
           };
@@ -684,15 +697,15 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
           } catch {
             await Deno.writeTextFile(memLog, `unavailable: container stats returned nothing\n${await noteInfra()}\n`);
           }
-          const logBody = await Deno.readTextFile(testLog);
+          const logBody = await Deno.readTextFile(evalLog);
           const logCases = countCases(logBody);
           const streamCases = (await Deno.readTextFile(events)).split("\n").filter((line) => line === "event: check").length;
           if (logCases !== streamCases) {
-            await append(testLog, `FAIL events: ${streamCases} check events, ${logCases} log cases\n`);
+            await append(evalLog, `FAIL events: ${streamCases} check events, ${logCases} log cases\n`);
             await drain();
             exitCode = 1;
           } else if (exitCode === 0 && !stripNoise(logBody).split("\n").includes("ok")) {
-            await append(testLog, "FAIL test: exit 0 but the log has no final ok line\n");
+            await append(evalLog, "FAIL test: exit 0 but the log has no final ok line\n");
             exitCode = 1;
           }
         }
@@ -700,9 +713,9 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     }
   } catch (err) {
     exitCode = 1;
-    await append(testLog, `FAIL host: ${err instanceof Error ? err.message : err}\n`);
+    await append(evalLog, `FAIL host: ${err instanceof Error ? err.message : err}\n`);
   } finally {
-    let logBody = await Deno.readTextFile(testLog).catch(() => "");
+    let logBody = await Deno.readTextFile(evalLog).catch(() => "");
     const memBody = await Deno.readTextFile(memLog).catch(() => "unavailable\n");
     const sysBody = await Deno.readTextFile(sysLog).catch(() => "unavailable\n");
     const seconds = Math.floor(Date.now() / 1000) - startS;
@@ -711,13 +724,13 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       const preview = statusMarkdown(exitCode === 0 ? "pass" : "fail", countCases(logBody), seconds, memBody, sysBody, timeline(eventsBody));
       if (unsafe(preview)) {
         exitCode = 1;
-        await append(testLog, "FAIL status: rendered block contains a home path\n");
-        logBody = await Deno.readTextFile(testLog);
+        await append(evalLog, "FAIL status: rendered block contains a home path\n");
+        logBody = await Deno.readTextFile(evalLog);
       }
     } catch (err) {
       exitCode = 1;
-      await append(testLog, `FAIL status: ${err instanceof Error ? err.message : err}\n`);
-      logBody = await Deno.readTextFile(testLog);
+      await append(evalLog, `FAIL status: ${err instanceof Error ? err.message : err}\n`);
+      logBody = await Deno.readTextFile(evalLog);
     }
     await report();
     await cleanup();
@@ -757,7 +770,7 @@ function assertStatus(code: number, want: number, file: string, name: string, st
 }
 
 try {
-  const src = text(`${ROOT}/test.ts`);
+  const src = text(`${ROOT}/evals.ts`);
   if (!src.includes('Deno.args[0] ?? "macos"')) fail("arch: default is not macos");
   if (!src.includes("container system start")) fail("arch: macos does not use Apple container");
   if (!src.includes('arch === "linux"')) fail("arch: linux path missing");
@@ -767,13 +780,13 @@ try {
   if (!await exists(workflow)) fail("arch: missing the workflow");
   if (!has(workflow, "runs-on: ubuntu-latest")) fail("arch: workflow has no hosted linux job");
   if (!has(workflow, "runs-on: [self-hosted, mac-studio]")) fail("arch: workflow has no studio job");
-  if (!has(workflow, "test.ts linux")) fail("arch: workflow does not run the linux path");
-  if (!has(workflow, "test.ts macos")) fail("arch: workflow does not run the macos path");
+  if (!has(workflow, "evals.ts linux")) fail("arch: workflow does not run the linux path");
+  if (!has(workflow, "evals.ts macos")) fail("arch: workflow does not run the macos path");
   if (!has(workflow, "contents: read")) fail("arch: workflow token can write");
   if (has(workflow, "pull_request")) fail("arch: a fork pull request can start the studio runner");
   ok("arch");
 
-  if (!src.includes("test.events.sse")) fail("events: script does not name the SSE stream");
+  if (!src.includes("eval.events.sse")) fail("events: script does not name the SSE stream");
   if (!src.includes("event: check")) fail("events: script does not emit check events");
   ok("events");
 
@@ -843,7 +856,7 @@ try {
   if (!has(`${ROOT}/CONTRIBUTING.md`, "This repo does not identify a person")) fail("identity: CONTRIBUTING.md does not forbid personal information");
   const scanned = [
     "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config/config.toml",
-    "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", "test.ts",
+    "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", "evals.ts",
     ".github/workflows/test.yml",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",
@@ -906,7 +919,7 @@ try {
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Do not add a Python file or a shell script")) fail("setup: CONTRIBUTING.md still allows Python or shell");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "setup.ts")) fail("setup: CONTRIBUTING.md does not name setup.ts");
   if (!has(`${ROOT}/CONTRIBUTING.md`, "hands an agent the prompt to work with the human on `/bootstrap`")) fail("setup: handoff is not required");
-  if (!has(`${ROOT}/CONTRIBUTING.md`, "`test.ts` is the only test")) fail("setup: test is not test.ts");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "`evals.ts` is the only eval runner")) fail("setup: eval runner is not evals.ts");
   if (!has(`${ROOT}/AGENTS.md`, "starts with `setup.ts`")) fail("setup: AGENTS.md does not start a machine with setup.ts");
   if (!await exists(`${ROOT}/skills/agent-ready/SKILL.md`)) fail("setup: missing the agent-ready skill");
   if (!hasRe(`${ROOT}/skills/agent-ready/SKILL.md`, /^name: agent-ready$/m)) fail("setup: skill name is not agent-ready");
@@ -952,7 +965,7 @@ try {
 
   if (!await exists(`${ROOT}/README.md`)) fail("pills: missing README.md");
   if (!has(`${ROOT}/README.md`, "badges/commit.svg")) fail("pills: README has no commit pill");
-  if (!has(`${ROOT}/README.md`, "badges/tests.svg")) fail("pills: README has no tests pill");
+  if (!has(`${ROOT}/README.md`, "badges/evals.svg")) fail("pills: README has no tests pill");
   if (!has(`${ROOT}/README.md`, "badges/time.svg")) fail("pills: README has no time pill");
   ok("pills");
 

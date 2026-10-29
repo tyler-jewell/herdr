@@ -10,7 +10,7 @@ Docs: vendored `skills/turnkey-tk/docs/ssh-agent.md`; tag https://github.com/tkh
 
 ## Gaps
 
-`ssh-agent.md` on main matches v0.7.0 aside from skill-link prefixes. `./apply` must not change SSH, git, or shells. `test.ts` starts Apple `container run` with no `--ssh`, user `1000:1000`, `--cap-drop ALL`, a read-only root, tmpfs homes, and no host mount, so that guest cannot see a host agent socket or the Mac `~/.config/turnkey`. Publishing the public key is manual and outside `tk`. An approval-gated policy is unusable because SSH waits for the signature. `gpg.ssh.program=tk` needs no socket and is signing-git-commits. A broker that serves SSH is this skill run as profile `broker`, not a `tk broker` command. `--allow-namespace` signs `ssh-keygen -Y sign` on any connection with no session bind, so a relay cannot be told from local use.
+`ssh-agent.md` on main matches v0.7.0 aside from skill-link prefixes. `./apply` must not change SSH, git, or shells. `evals.ts` starts Apple `container run` with no `--ssh`, user `1000:1000`, `--cap-drop ALL`, a read-only root, tmpfs homes, and no host mount, so that guest cannot see a host agent socket or the Mac `~/.config/turnkey`. Publishing the public key is manual and outside `tk`. An approval-gated policy is unusable because SSH waits for the signature. `gpg.ssh.program=tk` needs no socket and is signing-git-commits. A broker that serves SSH is this skill run as profile `broker`, not a `tk broker` command. `--allow-namespace` signs `ssh-keygen -Y sign` on any connection with no session bind, so a relay cannot be told from local use.
 
 ## Questions
 

@@ -1,8 +1,8 @@
 # herdr
 
 ![commit status](badges/commit.svg)
-![tests run](badges/tests.svg)
-![test seconds](badges/time.svg)
+![evals run](badges/tests.svg)
+![eval seconds](badges/time.svg)
 
 Thin opinionated setup on [Herdr](https://herdr.dev) core. Same config for every agent, every project, every computer.
 
@@ -42,7 +42,7 @@ flowchart LR
   apply --> win
 ```
 
-`./test.ts` rewrites the block and the pills below. The value list in that block is only scored agent runs. Do not edit them by hand.
+`./evals.ts` rewrites the block and the pills below. The value list in that block is only scored agent runs. Do not edit them by hand.
 
 <!-- status:start -->
 ## Status
@@ -51,8 +51,8 @@ flowchart LR
 | --- | --- |
 | result | pass |
 | cases | 32 |
-| seconds | 17 |
-| revision | 9b8f996+ |
+| seconds | 13 |
+| revision | 27a5f06+ |
 | setup | 1 |
 
 ### Value
@@ -81,66 +81,66 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 0s | run | arch | ok | macos |
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
-| 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-18282 |
-| 3s | run | container | ok | herdr-test-18282 |
-| 5s | check | arch | ok |  |
-| 5s | check | events | ok |  |
-| 5s | check | skill | ok |  |
-| 5s | check | herdr-skill | ok |  |
-| 5s | check | ponytail | ok |  |
-| 5s | check | repo-protection | ok |  |
-| 5s | check | skills-rule | ok |  |
-| 5s | check | checklist | ok |  |
-| 5s | check | bootstrap | ok |  |
-| 5s | check | identity | ok |  |
-| 5s | check | reviewer | ok |  |
-| 5s | check | models | ok |  |
-| 5s | check | evals | ok |  |
-| 5s | check | setup | ok |  |
-| 5s | check | tk | ok |  |
-| 5s | check | pills | ok |  |
-| 5s | check | status | ok |  |
-| 5s | check | fresh | ok |  |
-| 5s | check | idempotent | ok |  |
-| 5s | check | drift | ok |  |
-| 5s | check | linux | ok |  |
-| 5s | check | windows | ok |  |
-| 5s | check | unknown-os | ok |  |
-| 5s | check | unwritable | ok |  |
-| 5s | check | installer | ok |  |
-| 5s | check | stamp | ok |  |
-| 17s | check | live-apply | ok |  |
-| 17s | check | live-config | ok |  |
-| 17s | check | live-agents | ok |  |
-| 17s | check | live-core | ok |  |
-| 17s | check | live-worktree | ok |  |
-| 17s | check | live-stop | ok |  |
-| 17s | result | suite | pass |  |
+| 1s | run | image-build | ok | herdr-sandbox |
+| 1s | run | container | start | herdr-test-30089 |
+| 1s | run | container | ok | herdr-test-30089 |
+| 4s | check | arch | ok |  |
+| 4s | check | events | ok |  |
+| 4s | check | skill | ok |  |
+| 4s | check | herdr-skill | ok |  |
+| 4s | check | ponytail | ok |  |
+| 4s | check | repo-protection | ok |  |
+| 4s | check | skills-rule | ok |  |
+| 4s | check | checklist | ok |  |
+| 4s | check | bootstrap | ok |  |
+| 4s | check | identity | ok |  |
+| 4s | check | reviewer | ok |  |
+| 4s | check | models | ok |  |
+| 4s | check | evals | ok |  |
+| 4s | check | setup | ok |  |
+| 4s | check | tk | ok |  |
+| 4s | check | pills | ok |  |
+| 4s | check | status | ok |  |
+| 4s | check | fresh | ok |  |
+| 4s | check | idempotent | ok |  |
+| 4s | check | drift | ok |  |
+| 4s | check | linux | ok |  |
+| 4s | check | windows | ok |  |
+| 4s | check | unknown-os | ok |  |
+| 4s | check | unwritable | ok |  |
+| 4s | check | installer | ok |  |
+| 4s | check | stamp | ok |  |
+| 13s | check | live-apply | ok |  |
+| 13s | check | live-config | ok |  |
+| 13s | check | live-agents | ok |  |
+| 13s | check | live-core | ok |  |
+| 13s | check | live-worktree | ok |  |
+| 13s | check | live-stop | ok |  |
+| 13s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-18282
-memory 145.7 MiB / 1024.0 MiB
-cpu_usec 1366459
+container herdr-test-30089
+memory 143.3 MiB / 1024.0 MiB
+cpu_usec 1414690
 pids 2
-net_rx 29964286
-net_tx 300606
-block_read 120971264
+net_rx 29965172
+net_tx 224567
+block_read 118149120
 block_write 0
 ```
 
 ### System
 
 ```text
-container 1.5.0, arm64, cpus 8, running 2/2, images 6
+container 1.6.1, arm64, cpus 10, running 2/2, images 10
 
 disk:
-TYPE           TOTAL  ACTIVE  SIZE     RECLAIMABLE
-Images         6      2       7.48 GB  4.38 GB (59%)
-Containers     2      2       4.02 GB  0 B (0%)
-Local Volumes  0      0       0 B      0 B (0%)
+TYPE           TOTAL  ACTIVE  SIZE      RECLAIMABLE
+Images         10     2       10.18 GB  9.36 GB (92%)
+Containers     2      2       3.25 GB   0 B (0%)
+Local Volumes  0      0       0 B       0 B (0%)
 ```
 
 ### Grades
@@ -182,7 +182,7 @@ Live file: `~/.config/herdr/config.toml`, or `%APPDATA%\herdr\config.toml` on Wi
 | `CONTRIBUTING.md` | How a change is made. |
 | `skills/` | `ponytail` is required. `turnkey-tk` stays the upstream package. `repo-protection` is the lock. |
 
-`./test.ts` is the only test. It rewrites this status block.
+`./evals.ts` is the only eval runner. It rewrites this status block.
 
 ## Changes
 
