@@ -457,6 +457,22 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   }
 
   async function captureSystem(): Promise<void> {
+    if (arch === "linux") {
+      const version = await command("docker", ["version", "--format", "{{.Server.Version}}"]);
+      const machine = await command("uname", ["-m"]);
+      const nproc = await command("nproc", []);
+      const sysctl = nproc.code === 0 ? { code: 1, stdout: "" } : await command("sysctl", ["-n", "hw.ncpu"]);
+      const counted = Number((nproc.code === 0 ? nproc.stdout : sysctl.stdout).trim());
+      const disk = await command("docker", ["system", "df"]);
+      const status = JSON.stringify({
+        client: { version: version.stdout.trim() || "unknown" },
+        host: { architecture: machine.stdout.trim() || "unknown", cpus: counted > 0 ? counted : "unknown" },
+        resources: {},
+      });
+      await append(infra, version.stderr + disk.stderr);
+      await Deno.writeTextFile(sysLog, `status:\n${status}\ndisk:\n${disk.code === 0 ? disk.stdout : "df command failed\n"}`);
+      return;
+    }
     const status = await command("container", ["system", "status", "--format", "json"]);
     const disk = await command("container", ["system", "df"]);
     await append(infra, status.stderr + disk.stderr);
@@ -473,30 +489,35 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
 
   async function cleanup(): Promise<void> {
     if (started) {
-      const stop = await command("container", ["stop", name]);
-      const del = await command("container", ["delete", name]);
-      await append(infra, stop.stderr + del.stderr);
+      const stopped = arch === "linux"
+        ? await command("docker", ["rm", "-f", name])
+        : await command("container", ["stop", name]);
+      const deleted = arch === "linux" ? { stderr: "" } : await command("container", ["delete", name]);
+      await append(infra, stopped.stderr + deleted.stderr);
     }
     await Deno.remove(work, { recursive: true });
   }
 
   try {
-    // shortcut: macos is the only arch, add the next one beside this arm when it exists
-    if (arch !== "macos") {
+    const runtime = arch === "linux" ? "docker" : "container";
+    if (arch !== "macos" && arch !== "linux") {
       await Deno.writeTextFile(testLog, `FAIL arch: ${arch} is not supported\n`);
       await drain();
       exitCode = 1;
-    } else if (!(await onPath("container"))) {
-      await Deno.writeTextFile(testLog, "FAIL container: Apple container CLI is not on PATH\n");
-      await Deno.writeTextFile(sysLog, "unavailable: container CLI is not installed\n");
+    } else if (!(await onPath(runtime))) {
+      const why = arch === "linux" ? "docker is not on PATH" : "Apple container CLI is not on PATH";
+      await Deno.writeTextFile(testLog, `FAIL container: ${why}\n`);
+      await Deno.writeTextFile(sysLog, `unavailable: ${why}\n`);
       exitCode = 1;
     } else {
       await emit("run", "arch", "ok", arch);
-      await emit("run", "container-system", "start");
-      const system = await command("container", ["system", "start"]);
-      await append(infra, system.stdout + system.stderr);
+      if (arch === "macos") {
+        await emit("run", "container-system", "start");
+        const system = await command("container", ["system", "start"]);
+        await append(infra, system.stdout + system.stderr);
+      }
       await emit("run", "image-build", "start", image);
-      const build = await command("container", ["build", "--progress", "plain", "--tag", image, "--file", `${ROOT}/sandbox/Containerfile`, `${ROOT}/sandbox`]);
+      const build = await command(runtime, ["build", ...(arch === "macos" ? ["--progress", "plain"] : []), "--tag", image, "--file", `${ROOT}/sandbox/Containerfile`, `${ROOT}/sandbox`]);
       await Deno.writeTextFile(`${work}/build.log`, build.stdout + build.stderr);
       if (build.code !== 0) {
         const tail = stripNoise(build.stdout + build.stderr).split("\n").filter(Boolean).slice(-8).join("\n");
@@ -507,14 +528,17 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
       } else {
         await emit("run", "image-build", "ok", image);
         await emit("run", "container", "start", name);
-        const run = await command("container", [
-          "run", "-d", "--name", name, "--progress", "none", "--user", "1000:1000",
+        const tmpOpt = arch === "linux" ? ",exec" : "";
+        const runArgs = [
+          "run", "-d", "--name", name, "--user", "1000:1000",
           "--cap-drop", "ALL", "--read-only",
-          "--tmpfs", "/tmp:size=256M,mode=1777",
-          "--tmpfs", "/home/tester:size=512M,mode=1777",
+          "--tmpfs", `/tmp:size=256M,mode=1777${tmpOpt}`,
+          "--tmpfs", `/home/tester:size=512M,mode=1777${tmpOpt}`,
           "--env", "HOME=/home/tester", "--env", "USER=tester",
-          image, "sleep", "infinity",
-        ]);
+        ];
+        if (arch === "macos") runArgs.push("--progress", "none");
+        runArgs.push(image, "sleep", "infinity");
+        const run = await command(runtime, runArgs);
         await Deno.writeTextFile(runLog, run.stdout + run.stderr);
         if (run.code !== 0) {
           await Deno.writeTextFile(testLog, `FAIL container: could not start ${image}\n${await noteInfra()}\n`);
@@ -524,7 +548,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         } else {
           started = true;
           await emit("run", "container", "ok", name);
-          const tarPaths = ["apply", "setup.ts", "config", "test.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile"];
+          const tarPaths = ["apply", "setup.ts", "config", "test.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
           if (await exists(`${ROOT}/skills`)) tarPaths.push("skills");
           const tar = new Deno.Command("tar", {
             args: ["--no-xattrs", "-C", ROOT, "-cf", "-", ...tarPaths],
@@ -532,7 +556,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
             stdout: "piped",
             stderr: "null",
           }).spawn();
-          const exec = new Deno.Command("container", {
+          const exec = new Deno.Command(runtime, {
             args: [
               "exec", "-i", "--user", "1000:1000",
               "--env", "HOME=/home/tester", "--env", "USER=tester", "--env", "HERDR_SANDBOX=1",
@@ -561,7 +585,9 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
             await drain();
             const now = Math.floor(Date.now() / 1000);
             if (now - lastStats >= 2) {
-              const stats = await command("container", ["stats", name, "--format", "json", "--no-stream"]);
+              const stats = arch === "linux"
+                ? await command("docker", ["stats", name, "--no-stream", "--format", "{{json .}}"])
+                : await command("container", ["stats", name, "--format", "json", "--no-stream"]);
               if (stats.code === 0) await Deno.writeTextFile(`${work}/stats.json`, stats.stdout);
               await append(infra, stats.stderr);
               lastStats = now;
@@ -593,6 +619,11 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
                   break;
                 }
                 const rec = row as Record<string, unknown>;
+                if (typeof rec.MemUsage === "string") {
+                  lines.push(`container ${rec.Name ?? rec.ID ?? "unknown"}`);
+                  lines.push(`memory ${rec.MemUsage}`);
+                  continue;
+                }
                 lines.push(`container ${rec.id ?? "unknown"}`);
                 lines.push(`memory ${mb(rec.memoryUsageBytes)} / ${mb(rec.memoryLimitBytes)}`);
                 lines.push(`cpu_usec ${rec.cpuUsageUsec ?? "unknown"}`);
@@ -683,6 +714,15 @@ try {
   const src = text(`${ROOT}/test.ts`);
   if (!src.includes('Deno.args[0] ?? "macos"')) fail("arch: default is not macos");
   if (!src.includes("container system start")) fail("arch: macos does not use Apple container");
+  if (!src.includes('arch === "linux"')) fail("arch: linux path missing");
+  if (!src.includes('arch === "linux" ? "docker"')) fail("arch: linux does not use docker");
+  if (!src.includes('command(runtime, ["build"')) fail("arch: linux does not build the sandbox image");
+  const workflow = `${ROOT}/.github/workflows/test.yml`;
+  if (!await exists(workflow)) fail("arch: missing the workflow");
+  if (!has(workflow, "runs-on: ubuntu-latest")) fail("arch: workflow has no hosted linux job");
+  if (!has(workflow, "runs-on: [self-hosted, mac-studio]")) fail("arch: workflow has no studio job");
+  if (!has(workflow, "test.ts linux")) fail("arch: workflow does not run the linux path");
+  if (!has(workflow, "test.ts macos")) fail("arch: workflow does not run the macos path");
   ok("arch");
 
   if (!src.includes("test.events.sse")) fail("events: script does not name the SSE stream");
@@ -734,6 +774,7 @@ try {
   const scanned = [
     "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config/config.toml",
     "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", "test.ts",
+    ".github/workflows/test.yml",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",
     "skills/author-skill/references/research.md", "skills/author-skill/references/vendor.md", "skills/author-skill/references/write.md",

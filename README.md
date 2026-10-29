@@ -13,8 +13,8 @@ This is the setup repo for [Herdr](https://herdr.dev). The status block is the c
 | --- | --- |
 | result | pass |
 | cases | 30 |
-| seconds | 10 |
-| revision | a02f010+ |
+| seconds | 18 |
+| revision | dccd427+ |
 | setup | 1 |
 
 ### Harness
@@ -31,50 +31,50 @@ One public script applies this Herdr config on a computer, then hands an agent t
 | 0s | run | container-system | start |  |
 | 0s | run | image-build | start | herdr-sandbox |
 | 2s | run | image-build | ok | herdr-sandbox |
-| 2s | run | container | start | herdr-test-10564 |
-| 2s | run | container | ok | herdr-test-10564 |
-| 5s | check | arch | ok |  |
-| 5s | check | events | ok |  |
-| 5s | check | skill | ok |  |
-| 5s | check | herdr-skill | ok |  |
-| 5s | check | skills-rule | ok |  |
-| 5s | check | checklist | ok |  |
-| 5s | check | bootstrap | ok |  |
-| 5s | check | identity | ok |  |
-| 5s | check | reviewer | ok |  |
-| 5s | check | models | ok |  |
-| 5s | check | evals | ok |  |
-| 5s | check | setup | ok |  |
-| 5s | check | tk | ok |  |
-| 5s | check | pills | ok |  |
-| 5s | check | status | ok |  |
-| 5s | check | fresh | ok |  |
-| 5s | check | idempotent | ok |  |
-| 5s | check | drift | ok |  |
-| 5s | check | linux | ok |  |
-| 5s | check | windows | ok |  |
-| 5s | check | unknown-os | ok |  |
-| 5s | check | unwritable | ok |  |
-| 5s | check | installer | ok |  |
-| 5s | check | stamp | ok |  |
-| 7s | check | live-apply | ok |  |
-| 10s | check | live-config | ok |  |
-| 10s | check | live-agents | ok |  |
-| 10s | check | live-core | ok |  |
-| 10s | check | live-worktree | ok |  |
-| 10s | check | live-stop | ok |  |
-| 10s | result | suite | pass |  |
+| 2s | run | container | start | herdr-test-12290 |
+| 3s | run | container | ok | herdr-test-12290 |
+| 6s | check | arch | ok |  |
+| 6s | check | events | ok |  |
+| 6s | check | skill | ok |  |
+| 6s | check | herdr-skill | ok |  |
+| 6s | check | skills-rule | ok |  |
+| 6s | check | checklist | ok |  |
+| 6s | check | bootstrap | ok |  |
+| 6s | check | identity | ok |  |
+| 6s | check | reviewer | ok |  |
+| 6s | check | models | ok |  |
+| 6s | check | evals | ok |  |
+| 6s | check | setup | ok |  |
+| 6s | check | tk | ok |  |
+| 6s | check | pills | ok |  |
+| 6s | check | status | ok |  |
+| 6s | check | fresh | ok |  |
+| 6s | check | idempotent | ok |  |
+| 6s | check | drift | ok |  |
+| 6s | check | linux | ok |  |
+| 6s | check | windows | ok |  |
+| 6s | check | unknown-os | ok |  |
+| 6s | check | unwritable | ok |  |
+| 6s | check | installer | ok |  |
+| 6s | check | stamp | ok |  |
+| 18s | check | live-apply | ok |  |
+| 18s | check | live-config | ok |  |
+| 18s | check | live-agents | ok |  |
+| 18s | check | live-core | ok |  |
+| 18s | check | live-worktree | ok |  |
+| 18s | check | live-stop | ok |  |
+| 18s | result | suite | pass |  |
 
 ### Memory
 
 ```text
-container herdr-test-10564
-memory 145.4 MiB / 1024.0 MiB
-cpu_usec 1096006
+container herdr-test-12290
+memory 145.6 MiB / 1024.0 MiB
+cpu_usec 1572637
 pids 2
-net_rx 29952491
-net_tx 157641
-block_read 120672256
+net_rx 29954285
+net_tx 281205
+block_read 120844288
 block_write 0
 ```
 
@@ -137,7 +137,8 @@ Product behavior that this file does not cover lives in the Herdr docs: <https:/
 | `config/config.toml` | The config that `apply` copies. |
 | `AGENTS.md` | How an agent sets a machine up with this repo. Read `README.md` first for current status. |
 | `CONTRIBUTING.md` | Rules for changing the setup. |
-| `test.ts` | The only test. Default arch `macos` runs the checks in an Apple container. It rewrites the status block. |
+| `test.ts` | The only test. `macos` uses an Apple container. `linux` uses Docker. It rewrites the status block. |
+| `.github/workflows/test.yml` | Runs that test on the self-hosted studio runner and on hosted Linux. |
 | `agents/independent-reviewer.md` | Reviews a change, or scores an agent run. |
 | `evals/results.json` | Domains, evals, and the local and cloud grade for each. The score source. |
 | `agents/models.md` | Grade table rendered from `evals/results.json`. |
