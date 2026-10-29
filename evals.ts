@@ -289,7 +289,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
   type Catalog = { overview?: string; versions: Version[] };
 
   function catalog(): Catalog {
-    return JSON.parse(text(`${ROOT}/evals/results.json`)) as Catalog;
+    return JSON.parse(text(`${ROOT}/eval-results.json`)) as Catalog;
   }
 
   function gradeGrid(domains: Domain[]): { columns: string[]; models: string[]; where: Map<string, string>; cell: Map<string, string> } {
@@ -315,7 +315,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
     const lines = [
       "# Models",
       "",
-      "Rendered from `evals/results.json` by `./evals.ts`. Do not edit this table by hand.",
+      "Rendered from `eval-results.json` by `./evals.ts`. Do not edit this table by hand.",
       "",
       "One matrix per setup version. Grades stay on the version that was scored. The basic case is skill calling, column `skill-calling/bootstrap`. A grade is from `agents/independent-reviewer.md`. An empty cell has not been scored. A hosted model uses `where` set to `cloud`.",
       "",
@@ -607,7 +607,7 @@ if (Deno.env.get("HERDR_SANDBOX") !== "1") {
         } else {
           started = true;
           await emit("run", "container", "ok", name);
-          const tarPaths = ["apply", "setup.ts", "config", "evals.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
+          const tarPaths = ["apply", "setup.ts", "config", "evals.ts", "AGENTS.md", "CONTRIBUTING.md", "README.md", "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox/Containerfile", ".github/workflows/test.yml"];
           if (await exists(`${ROOT}/skills`)) tarPaths.push("skills");
           const tar = new Deno.Command("tar", {
             args: ["--no-xattrs", "-C", ROOT, "-cf", "-", ...tarPaths],
@@ -856,7 +856,7 @@ try {
   if (!has(`${ROOT}/CONTRIBUTING.md`, "This repo does not identify a person")) fail("identity: CONTRIBUTING.md does not forbid personal information");
   const scanned = [
     "README.md", "AGENTS.md", "CONTRIBUTING.md", "apply", "setup.ts", "config/config.toml",
-    "agents/independent-reviewer.md", "agents/models.md", "evals/results.json", "sandbox/Containerfile", "evals.ts",
+    "agents/independent-reviewer.md", "agents/models.md", "eval-results.json", "sandbox/Containerfile", "evals.ts",
     ".github/workflows/test.yml",
     "skills/herdr/bootstrap.md", "skills/herdr/CHECKLIST.md",
     "skills/author-skill/SKILL.md", "skills/author-skill/CHECKLIST.md",
@@ -885,7 +885,7 @@ try {
   if (!has(reviewer, "skills/container/SKILL.md")) fail("reviewer: does not read skills/container/SKILL.md");
   if (!has(reviewer, "from start to finish before you judge")) fail("reviewer: skill is not read before judging");
   if (!has(reviewer, "prompt exactly `/bootstrap`")) fail("reviewer: does not score the one-turn bootstrap run");
-  if (!has(reviewer, "evals/results.json")) fail("reviewer: does not record the grade");
+  if (!has(reviewer, "eval-results.json")) fail("reviewer: does not record the grade");
   ok("reviewer");
 
   const models = `${ROOT}/agents/models.md`;
@@ -896,7 +896,7 @@ try {
   if (!has(models, "where` set to `cloud")) fail("models: cloud uses a different table");
   ok("models");
 
-  const results = JSON.parse(text(`${ROOT}/evals/results.json`)) as {
+  const results = JSON.parse(text(`${ROOT}/eval-results.json`)) as {
     overview?: string;
     versions: { setup: string; domains: { id: string; evals: { id: string; scores: { model: string; where: string; grade: string }[] }[] }[] }[];
   };
@@ -911,7 +911,7 @@ try {
   if (!bootstrapEval) fail("evals: skill-calling/bootstrap missing");
   if (scored("qwen2.5-coder-3b-instruct-q8_0")?.where !== "local" || scored("qwen2.5-coder-3b-instruct-q8_0")?.grade !== "D") fail("evals: local bootstrap grade is not D");
   if (scored("grok-4.7")?.where !== "cloud" || scored("grok-4.7")?.grade !== "A") fail("evals: cloud bootstrap grade is not A");
-  if (!has(`${ROOT}/CONTRIBUTING.md`, "evals/results.json")) fail("evals: CONTRIBUTING.md does not keep the score source");
+  if (!has(`${ROOT}/CONTRIBUTING.md`, "eval-results.json")) fail("evals: CONTRIBUTING.md does not keep the score source");
   ok("evals");
 
   if (!has(`${ROOT}/CONTRIBUTING.md`, "Script in TypeScript")) fail("setup: CONTRIBUTING.md does not require TypeScript");
