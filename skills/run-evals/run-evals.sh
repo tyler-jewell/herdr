@@ -101,7 +101,9 @@ run_preflight() {
   fi
   if "$RUNNER" image ls 2>/dev/null | grep -q "^$IMAGE"; then IMAGE_OK=1; fi
   if curl -sf --max-time 2 "$MODEL_URL/models" >/dev/null 2>&1; then MODEL_OK=1; fi
-  if [ -z "$(git -C "$ROOT" status --porcelain)" ]; then CLEAN_OK=1; fi
+  # Ignore the three files a recorded run writes, exactly as evals.ts does.
+  dirty="$(git -C "$ROOT" status --porcelain | awk '{print $2}' | grep -vE '^(evals\.jsonl|README\.md|results\.svg)$' || true)"
+  if [ -z "$dirty" ]; then CLEAN_OK=1; fi
 }
 
 if [ "$PREFLIGHT_ONLY" = 1 ] || [ "$DRY" = 1 ]; then
