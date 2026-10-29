@@ -22,7 +22,7 @@ That choice includes any of these, or a narrower or wider pass when the change c
 
 - Read one function.
 - Check that the change stays robust when apply fails or is run twice.
-- Run the full test pipeline, `./test.sh`.
+- Run the full test pipeline, `./test.ts`.
 - Review security: what the change executes, writes, or installs on a machine.
 
 Do not lock that choice until the container section below is settled.
@@ -42,3 +42,19 @@ Say which depth you chose and why, in a few lines. Then do that depth and stop. 
 Judge project rules against the three documents above. Judge the container runtime against `skills/container/SKILL.md` and the references you had to read. A finding names that file. Do not invent a rule in the review.
 
 The result is the same in a manual review and in CI/CD: the depth you chose, then findings, or a clear pass.
+
+## Score an agent run
+
+When the caller asks for a score instead of a change review, score the run they hand you. Do not review the repo instead. Read the same three documents first. The caller does not pick the grade.
+
+The basic case is the local Herdr agent, one turn, prompt exactly `/bootstrap`. Its context is the loaded `skills/herdr/bootstrap.md` and nothing else. One turn cannot open another file or take a second turn. Do not mark it down for stopping there.
+
+Grade only what that turn did with the skill it was given:
+
+- **A.** Starts the skill's first step. It names the reads that step requires, and it does not invent answers.
+- **B.** Starts that step and misses part of it.
+- **C.** Talks about the task and does not start the step.
+- **D.** Returns the skill text, or a piece of it, and does not start the step.
+- **F.** Empty, or an `answered:` line the skill did not ask for on that turn.
+
+Say the grade and the reason in a few lines. Record it in `evals/results.json`, under the setup version that was running, then the domain and the eval, on that model's score. `where` is `local` or `cloud`. The basic case is domain `skill-calling`, eval `bootstrap`. Leave a score out when that model was not scored. Do not invent a grade. Do not move a grade onto a newer setup version. Then stop.

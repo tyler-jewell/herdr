@@ -14,9 +14,13 @@ A sentence about both gets split. Each file keeps its own sentence. Do not paste
 
 This file is the machine file. Read it before installing or fixing Herdr on a computer.
 
+Read `README.md` for the current status of this project before you act, and keep that status in mind until the task is done. Do not copy that status into this file.
+
 Herdr the product is documented at <https://herdr.dev/agent-guide.md> and <https://herdr.dev/docs/>. This repo is the config. When they disagree, the product docs win for how Herdr works, and this repo wins for which settings belong on a machine.
 
 ## Set up a machine
+
+A new machine starts with `setup.ts`. That script runs `./apply`, then hands an agent the prompt to work with the human on `/bootstrap`. That handoff is required. How scripts are written is `CONTRIBUTING.md`. Every change follows `skills/ponytail/SKILL.md`. How that is required is `CONTRIBUTING.md`.
 
 1. Use a checkout of this repo on the machine. Run `./apply` from that checkout. Do not paste the config into place yourself.
 2. Read the JSON object on stdout. Ignore the urge to treat a friendly log line as success.
@@ -61,10 +65,14 @@ A machine is good when all of these hold:
 - Do not reinstall Herdr when `install` is `present`.
 - `apply` installs Herdr only when the binary is missing, using the official installer (`https://herdr.dev/install.sh`, or `install.ps1` from Git Bash). A failed install must not be papered over by copying binaries from another machine.
 - A backup is the previous config, for reading. Do not merge it back. The repo file is the setup.
-- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`) exist so `test.sh` can use a fake home. Never set them on a real machine.
+- Test overrides (`HERDR_SETUP_HOME`, `HERDR_SETUP_OS`, `HERDR_SETUP_APPDATA`, `HERDR_SETUP_SKIP_INSTALL`, `HERDR_SETUP_SKIP_RELOAD`, `HERDR_SETUP_INSTALL_CMD`) exist so `test.ts` can use a fake home. Never set them on a real machine.
 - WSL is Linux. Native Windows is Git Bash. PowerShell alone cannot host `./apply`.
 - On a machine, run `./apply` and stop. Do not change shells, git, editors, SSH, or anything else.
 - A secret or a key is handled only with `tk` (<https://github.com/tkhq/tk>). Read `skills/turnkey-tk/SKILL.md` and follow it. Do not print the value, and do not put it in this repo or in any other store.
+- When a skill is used, decide every item in that skill's `CHECKLIST.md` before acting. The checklist is the decision list. Do not invent a setup the checklist does not allow.
+- Open checklist items for a new system are decided by `skills/herdr/bootstrap.md` before that system is built.
+- Controlling Herdr panes is `skills/herdr/SKILL.md`. Follow it. Do not paste it.
+- Commit signing on a machine follows `skills/repo-protection/SKILL.md`. Do not paste it. The repository lock that signing serves is `CONTRIBUTING.md`.
 
 ## Prove it
 
@@ -76,6 +84,6 @@ On the machine you just set up, run `./apply` a second time. `changed` must be `
 
 File: `agents/independent-reviewer.md`
 
-When: a change needs a review. A person can start it, or CI/CD can start it. The job is the same either way.
+When: a change needs a review, or a Herdr agent run needs a score. A person can start it, or CI/CD can start it. The job is the same either way.
 
-How: give the agent that file and the change. Do not set the depth. The agent reads the source-of-truth docs named in that file, each one whole, before it reviews. When the change touches the container runtime, it also reads `skills/container/SKILL.md` whole. Do not paste that skill.
+How: give the agent that file and the change, or the run (prompt, context, turn limit, and reply). Do not set the depth or the grade. The agent reads the source-of-truth docs named in that file, each one whole, before it reviews. When the change touches the container runtime, it also reads `skills/container/SKILL.md` whole. Do not paste that skill. A score is recorded in `evals/results.json`.
