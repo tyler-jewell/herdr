@@ -1,21 +1,18 @@
 # Checklist
 
-Purpose: the live decision list for this skill. Decide every item before using the skill.
+Purpose: the live decision list for this skill. Decide every item before using the skill. The official skill is `skills/herdr/SKILL.md` and `skills/herdr/REQUIREMENTS.md`.
 Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
 Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
-The official file is `SKILL.md`. This checklist is not part of that package.
+The classified decisions are recorded in `REQUIREMENTS.md`. See that file for the live decision list.
 
-## Questions
+## Questions (classified)
 
-1. Is this agent inside a Herdr pane (`HERDR_ENV=1`)?
-- Yes. Follow `SKILL.md`.
-- No. Say so and stop. Do not control the focused session from outside.
 
-2. Did the user ask for a new workspace, tab, or worktree?
-- No. Use a sibling pane in the current tab.
-- Yes. Create only the topology they named.
+### Question Q2
+- **Status**: `Config`
+- **Reason**: Maps to worktrees/topology config in config.toml
 
-3. Which agent kind should start?
-- The kind the user named.
-- No kind was named. Run `herdr agent` and ask. Do not pick one.
+### Question Q3
+- **Status**: `Config`
+- **Reason**: Maps to agent kind default or bootstrap config

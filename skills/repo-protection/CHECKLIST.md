@@ -1,48 +1,42 @@
 # Checklist
 
-Purpose: the live decision list for this skill. Decide every item before using the skill. The lock is `skills/repo-protection/references/policy.json`.
+Purpose: the live decision list for this skill. Decide every item before using the skill. The official skill is `skills/repo-protection/SKILL.md` and `skills/repo-protection/REQUIREMENTS.md`.
 Change when: the skill, its CLI, or its docs change, or an item gets an `answered:` line.
 Not for: the skill itself (`SKILL.md`), the questioning procedure (`skills/herdr/bootstrap.md`).
 
-## Questions
+The classified decisions are recorded in `REQUIREMENTS.md`. See that file for the live decision list.
 
-1. Who may push or delete a branch?
-- only the authenticated admin
-- any collaborator
-- the public
-answered: only the authenticated admin
+## Questions (classified)
 
-2. Can the public read, clone, and fork?
-- yes
-- no
-answered: yes
 
-3. What does a new commit need?
-- a signature the host verifies (`signed-history` ruleset with `bypass: "none"`)
-- no signature
-answered: a signature the host verifies (`signed-history` ruleset with `bypass: "none"`)
+### Question Q1
+- **Status**: `Config`
+- **Reason**: Maps to git branch push rights config
 
-4. May a branch be force-pushed?
-- no (`non_fast_forward` enforced on all branches with `bypass: "none"`)
-- yes, except the default branch
-answered: no (`non_fast_forward` enforced on all branches with `bypass: "none"`)
+### Question Q2
+- **Status**: `Config`
+- **Reason**: Maps to repo accessibility/visibility config
 
-5. How does `main` move?
-- pull request (`merge`, `squash`, or `rebase`) after `linux` and `macos` status checks, with `authenticated-user` bypass allowed for signed fast-forward commits
-- unsigned or force-pushed commits
-answered: pull request (`merge`, `squash`, or `rebase`) after `linux` and `macos` status checks, with `authenticated-user` bypass allowed for signed fast-forward commits
+### Question Q3
+- **Status**: `Config`
+- **Reason**: Maps to commit signing config
 
-6. Who may create, move, or delete a tag?
-- the authenticated admin creates tags, and nobody moves or deletes a tag (`immutable-tags` has `bypass: "none"`)
-- anyone with write access may move a tag
-answered: the authenticated admin creates tags, and nobody moves or deletes a tag (`immutable-tags` has `bypass: "none"`)
+### Question Q4
+- **Status**: `Config`
+- **Reason**: Maps to force push policy config
 
-7. How does this machine sign commits?
-- SSH signing (`commit.gpgsign = true`, `gpg.format = ssh`) using `tk` for Turnkey-managed keys or the machine's configured `gpg.ssh.program`, with the public key registered on GitHub and without `./apply` mutating git config
-- unsigned commits or keys stored in the repository
-answered: SSH signing (`commit.gpgsign = true`, `gpg.format = ssh`) using `tk` for Turnkey-managed keys or the machine's configured `gpg.ssh.program`, with the public key registered on GitHub and without `./apply` mutating git config
+### Question Q5
+- **Status**: `Config`
+- **Reason**: Maps to main branch movement/git flow config
 
-8. What may the workflow token do?
-- read the repository (`contents: read`), with action SHA pinning required and no pull-request review approval
-- write the repository
-answered: read the repository (`contents: read`), with action SHA pinning required and no pull-request review approval
+### Question Q6
+- **Status**: `Config`
+- **Reason**: Maps to tag management config
+
+### Question Q7
+- **Status**: `Config`
+- **Reason**: Maps to machine commit signing config
+
+### Question Q8
+- **Status**: `Config`
+- **Reason**: Maps to GitHub Actions workflow token config
