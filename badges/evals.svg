@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="450" height="110" role="img" aria-label="capability heatmap">
+<rect width="450" height="110" fill="#fff"/>
+<text x="308" y="16" font-family="Verdana,sans-serif" font-size="11" fill="#24292f">skill-calling/1/bootstrap</text>
+<text x="8" y="40" font-family="Verdana,sans-serif" font-size="11" fill="#24292f">qwen2.5-coder-3b-instruct-q8_0</text>
+<rect x="300" y="22" width="144" height="24" rx="3" fill="#bc4c00"/>
+<text x="372" y="39" text-anchor="middle" font-family="Verdana,sans-serif" font-size="12" fill="#fff">D</text>
+<text x="8" y="68" font-family="Verdana,sans-serif" font-size="11" fill="#24292f">grok-4.7</text>
+<rect x="300" y="50" width="144" height="24" rx="3" fill="#1a7f37"/>
+<text x="372" y="67" text-anchor="middle" font-family="Verdana,sans-serif" font-size="12" fill="#fff">A</text>
+<text x="8" y="102" font-family="Verdana,sans-serif" font-size="11" fill="#57606a">A B C D F, darker is better. Empty is not scored.</text>
+</svg>

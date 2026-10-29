@@ -1,0 +1,156 @@
+id: 1
+event: run
+data: {"seq":1,"elapsed_s":0,"name":"arch","status":"ok","detail":"macos"}
+
+id: 2
+event: run
+data: {"seq":2,"elapsed_s":0,"name":"container-system","status":"start"}
+
+id: 3
+event: run
+data: {"seq":3,"elapsed_s":0,"name":"image-build","status":"start","detail":"herdr-sandbox"}
+
+id: 4
+event: run
+data: {"seq":4,"elapsed_s":1,"name":"image-build","status":"ok","detail":"herdr-sandbox"}
+
+id: 5
+event: run
+data: {"seq":5,"elapsed_s":1,"name":"container","status":"start","detail":"herdr-test-30089"}
+
+id: 6
+event: run
+data: {"seq":6,"elapsed_s":1,"name":"container","status":"ok","detail":"herdr-test-30089"}
+
+id: 7
+event: check
+data: {"seq":7,"elapsed_s":4,"name":"arch","status":"ok"}
+
+id: 8
+event: check
+data: {"seq":8,"elapsed_s":4,"name":"events","status":"ok"}
+
+id: 9
+event: check
+data: {"seq":9,"elapsed_s":4,"name":"skill","status":"ok"}
+
+id: 10
+event: check
+data: {"seq":10,"elapsed_s":4,"name":"herdr-skill","status":"ok"}
+
+id: 11
+event: check
+data: {"seq":11,"elapsed_s":4,"name":"ponytail","status":"ok"}
+
+id: 12
+event: check
+data: {"seq":12,"elapsed_s":4,"name":"repo-protection","status":"ok"}
+
+id: 13
+event: check
+data: {"seq":13,"elapsed_s":4,"name":"skills-rule","status":"ok"}
+
+id: 14
+event: check
+data: {"seq":14,"elapsed_s":4,"name":"checklist","status":"ok"}
+
+id: 15
+event: check
+data: {"seq":15,"elapsed_s":4,"name":"bootstrap","status":"ok"}
+
+id: 16
+event: check
+data: {"seq":16,"elapsed_s":4,"name":"identity","status":"ok"}
+
+id: 17
+event: check
+data: {"seq":17,"elapsed_s":4,"name":"reviewer","status":"ok"}
+
+id: 18
+event: check
+data: {"seq":18,"elapsed_s":4,"name":"models","status":"ok"}
+
+id: 19
+event: check
+data: {"seq":19,"elapsed_s":4,"name":"evals","status":"ok"}
+
+id: 20
+event: check
+data: {"seq":20,"elapsed_s":4,"name":"setup","status":"ok"}
+
+id: 21
+event: check
+data: {"seq":21,"elapsed_s":4,"name":"tk","status":"ok"}
+
+id: 22
+event: check
+data: {"seq":22,"elapsed_s":4,"name":"pills","status":"ok"}
+
+id: 23
+event: check
+data: {"seq":23,"elapsed_s":4,"name":"status","status":"ok"}
+
+id: 24
+event: check
+data: {"seq":24,"elapsed_s":4,"name":"fresh","status":"ok"}
+
+id: 25
+event: check
+data: {"seq":25,"elapsed_s":4,"name":"idempotent","status":"ok"}
+
+id: 26
+event: check
+data: {"seq":26,"elapsed_s":4,"name":"drift","status":"ok"}
+
+id: 27
+event: check
+data: {"seq":27,"elapsed_s":4,"name":"linux","status":"ok"}
+
+id: 28
+event: check
+data: {"seq":28,"elapsed_s":4,"name":"windows","status":"ok"}
+
+id: 29
+event: check
+data: {"seq":29,"elapsed_s":4,"name":"unknown-os","status":"ok"}
+
+id: 30
+event: check
+data: {"seq":30,"elapsed_s":4,"name":"unwritable","status":"ok"}
+
+id: 31
+event: check
+data: {"seq":31,"elapsed_s":4,"name":"installer","status":"ok"}
+
+id: 32
+event: check
+data: {"seq":32,"elapsed_s":4,"name":"stamp","status":"ok"}
+
+id: 33
+event: check
+data: {"seq":33,"elapsed_s":13,"name":"live-apply","status":"ok"}
+
+id: 34
+event: check
+data: {"seq":34,"elapsed_s":13,"name":"live-config","status":"ok"}
+
+id: 35
+event: check
+data: {"seq":35,"elapsed_s":13,"name":"live-agents","status":"ok"}
+
+id: 36
+event: check
+data: {"seq":36,"elapsed_s":13,"name":"live-core","status":"ok"}
+
+id: 37
+event: check
+data: {"seq":37,"elapsed_s":13,"name":"live-worktree","status":"ok"}
+
+id: 38
+event: check
+data: {"seq":38,"elapsed_s":13,"name":"live-stop","status":"ok"}
+
+id: 39
+event: result
+data: {"seq":39,"elapsed_s":13,"name":"suite","status":"pass"}
+
